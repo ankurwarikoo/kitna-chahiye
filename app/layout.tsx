@@ -4,7 +4,7 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   title: "Kitna Chahiye — How much does your life actually cost?",
-  description: "Nine questions. Then the salary you need to pay for it. No signup, free, under three minutes.",
+  description: "Less than 3 minutes. Find out the salary you need to pay for your life. No signup, free.",
   metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000"),
 };
 

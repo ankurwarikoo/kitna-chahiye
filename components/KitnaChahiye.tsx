@@ -365,9 +365,9 @@ function Landing({ onStart }: { onStart: () => void }) {
           How much does your life actually cost?
         </h1>
         <p style={{ fontSize: 16, lineHeight: 1.6, color: "#6F6557", margin: 0, maxWidth: "19em" }}>
-          Nine questions.
+          Less than 3 minutes.
           <br />
-          Then the salary you need to pay for it.
+          And find out the salary you need to pay for your life.
         </p>
       </div>
       <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
