@@ -131,11 +131,13 @@ export function decodeAnswers(token: string): Answers {
 }
 
 function readKidsAges(v: unknown, fallback: number[]): number[] {
-  if (Array.isArray(v)) return v.map((x) => Number(x)).filter((n) => !isNaN(n) && n >= 0 && n <= 30);
+  // -1 is a valid entry: a declared child whose age has not been filled in yet.
+  const clean = (arr: unknown[]) => arr.map((x) => Number(x)).filter((n) => !isNaN(n) && n >= -1 && n <= 30);
+  if (Array.isArray(v)) return clean(v);
   if (typeof v === "string" && v.trim().startsWith("[")) {
     try {
       const arr = JSON.parse(v);
-      if (Array.isArray(arr)) return arr.map((x) => Number(x)).filter((n) => !isNaN(n) && n >= 0 && n <= 30);
+      if (Array.isArray(arr)) return clean(arr);
     } catch {
       /* fall through */
     }

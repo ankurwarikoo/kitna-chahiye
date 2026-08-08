@@ -26,6 +26,7 @@ import {
   priced,
   questionByKey,
   stepKeys,
+  UNANSWERED,
 } from "@/lib/cost-model";
 import { encodeAnswers } from "@/lib/token";
 import { useAnimatedValue } from "./useAnimatedValue";
@@ -787,12 +788,12 @@ function HouseholdScreen({ household, onChange }: { household: Household; onChan
 
   const setKidCount = (n: number) => {
     const next = kids.slice(0, n);
-    while (next.length < n) next.push(5); // sensible default age; editable below
+    while (next.length < n) next.push(UNANSWERED); // age left blank until the user enters it
     onChange({ kidsAges: next });
   };
   const setKidAge = (i: number, ageStr: string) => {
     const digits = ageStr.replace(/\D/g, "").slice(0, 2);
-    const age = digits === "" ? 0 : Math.min(25, parseInt(digits, 10));
+    const age = digits === "" ? UNANSWERED : Math.min(25, parseInt(digits, 10));
     const next = kids.slice();
     next[i] = age;
     onChange({ kidsAges: next });
@@ -889,10 +890,11 @@ function HouseholdScreen({ household, onChange }: { household: Household; onChan
               {kids.map((age, i) => (
                 <input
                   key={i}
-                  value={String(age)}
+                  value={age < 0 ? "" : String(age)}
                   onChange={(e) => setKidAge(i, e.target.value)}
                   inputMode="numeric"
                   maxLength={2}
+                  placeholder="Age"
                   aria-label={`Age of child ${i + 1}`}
                   style={{
                     width: 60,
@@ -946,9 +948,11 @@ function FamilyCostScreen({
   const value = kind === "children" ? h.kidsCost : h.parentsCost;
   const set = (v: string) => onChange(kind === "children" ? { kidsCost: v } : { parentsCost: v });
 
+  const enteredAges = h.kidsAges.filter((x) => x >= 0);
+  const agesText = enteredAges.length ? ` (age${enteredAges.length === 1 ? " " : "s "}${enteredAges.join(", ")})` : "";
   const helper =
     kind === "children"
-      ? `Based on ${h.kidsAges.length} ${h.kidsAges.length === 1 ? "child" : "children"} (age${h.kidsAges.length === 1 ? " " : "s "}${h.kidsAges.join(", ")}) by school stage, city-adjusted. Edit if yours differ.`
+      ? `Based on ${h.kidsAges.length} ${h.kidsAges.length === 1 ? "child" : "children"}${agesText} by school stage, city-adjusted. Enter ages above to price them. Edit if yours differ.`
       : `Everyday support plus a senior health cover for ${h.parents} ${h.parents === 1 ? "parent" : "parents"}, city-adjusted. Edit if yours differ.`;
 
   return (

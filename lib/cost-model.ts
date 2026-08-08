@@ -392,10 +392,11 @@ function childBase(age: number): number {
   return 20000; // college / higher education
 }
 
-/** Derived monthly kids cost, summed per child and city-adjusted. */
+/** Derived monthly kids cost, summed per child and city-adjusted. A child whose
+ *  age has not been entered yet contributes nothing until it is. */
 export function childrenDerived(a: Answers, c: City): number {
   const costIdx = 0.78 + 0.22 * c.idx;
-  return a.household.kidsAges.reduce((s, age) => s + Math.round((childBase(age) * costIdx) / 100) * 100, 0);
+  return a.household.kidsAges.reduce((s, age) => (age < 0 ? s : s + Math.round((childBase(age) * costIdx) / 100) * 100), 0);
 }
 
 /** Derived monthly parents cost: everyday support (city-adjusted) + a flat senior health premium, per parent. */
@@ -723,16 +724,16 @@ export function breakdownRows(a: Answers, m: Model): BreakdownRow[] {
     : "";
 
   const kidsN = a.household.kidsAges.length;
+  const enteredAges = a.household.kidsAges.filter((x) => x >= 0);
+  const kidsAgesText = enteredAges.length ? " (age" + (enteredAges.length === 1 ? " " : "s ") + enteredAges.join(", ") + ")" : "";
   const kidsNote =
     kidsN === 0
       ? ""
       : "You told us " +
         kidsN +
         (kidsN === 1 ? " child" : " children") +
-        " (age" +
-        (kidsN === 1 ? " " : "s ") +
-        a.household.kidsAges.join(", ") +
-        "). School fees, care, activities and their health, city-adjusted.";
+        kidsAgesText +
+        ". School fees, care, activities and their health, city-adjusted.";
   const parentsN = a.household.parents;
   const parentsNote =
     parentsN === 0
