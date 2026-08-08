@@ -166,11 +166,11 @@ export const QUESTIONS: Question[] = [
     title: "How do you live?",
     sub: "Rent plus maintenance. Deposit not counted.",
     opts: [
-      { label: "With family", sub: "You contribute something", v: 2500, n: "You live with family in {city} and put something into the house every month." },
+      { label: "With family / Own house", sub: "You contribute something", v: 2500, n: "You live with family in {city} and put something into the house every month." },
       { label: "PG or shared room", sub: "Your share of a flat", v: 11000, n: "Your share of a PG or a shared flat in {city}, including maintenance." },
-      { label: "1BHK, alone", sub: "Decent building, okay locality", v: 24000, n: "A one-bedroom flat to yourself in {city}, including maintenance." },
-      { label: "2BHK, alone", sub: "Space for a desk and guests", v: 36000, n: "A two-bedroom flat to yourself in {city}, including maintenance." },
-      { label: "2BHK, prime area", sub: "The address people recognise", v: 55000, n: "A two-bedroom flat in a prime part of {city}, including maintenance." },
+      { label: "Rent 1BHK, alone", sub: "Decent building, okay locality", v: 24000, n: "A one-bedroom flat to yourself in {city}, including maintenance." },
+      { label: "Rent 2BHK, alone", sub: "Space for a desk and guests", v: 36000, n: "A two-bedroom flat to yourself in {city}, including maintenance." },
+      { label: "Rent 2BHK, prime area", sub: "The address people recognise", v: 55000, n: "A two-bedroom flat in a prime part of {city}, including maintenance." },
     ],
   },
   {
@@ -276,9 +276,9 @@ export interface DebtDef {
 
 export const DEBT_DEFS: DebtDef[] = [
   { k: "edu", label: "An education loan", sub: "The most common one at your age", v: 12000, years: true },
-  { k: "vehicle", label: "A vehicle EMI", sub: "Bike or car", v: 9000, years: true },
-  { k: "card", label: "A card balance I keep rolling", sub: "Minimum due, every month", v: 6000 },
-  { k: "other", label: "Another loan", sub: "Personal, home, family, anything else", v: 15000, years: true },
+  { k: "vehicle", label: "A Car/Bike Loan", sub: "Bike or car", v: 9000, years: true },
+  { k: "card", label: "A credit card monthly spend", sub: "Minimum due, every month", v: 6000 },
+  { k: "other", label: "Personal (or any other) loan", sub: "Personal, home, family, anything else", v: 15000, years: true },
 ];
 
 export interface ToggleDef {

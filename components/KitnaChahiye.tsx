@@ -41,6 +41,15 @@ const LINE = "#EADFCC";
 const PAPER = "#FFFFFF";
 const ACCENT = "#E14B33";
 
+// Spelled-out step eyebrow ("Two of nine"), matching the original design. The
+// total is now dynamic because the household flow can add screens.
+const NUM_WORDS = ["zero", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine", "ten", "eleven", "twelve", "thirteen", "fourteen"];
+function stepEyebrow(i: number, total: number): string {
+  const ord = NUM_WORDS[i + 1] ?? String(i + 1);
+  const tot = NUM_WORDS[total] ?? String(total);
+  return `${ord.charAt(0).toUpperCase()}${ord.slice(1)} of ${tot}`;
+}
+
 type Step = "landing" | "quiz" | "calc" | "result";
 
 const CITY_CHIPS: [string, string][] = [
@@ -254,7 +263,7 @@ export function KitnaChahiye({ initialAnswers, initialCity, startAtResult }: Kit
         {/* Body */}
         <div style={{ flex: 1, padding: "28px 20px 24px" }}>
           <div style={{ ...mono, fontSize: 10, letterSpacing: "0.16em", textTransform: "uppercase", color: "#B9AE9B", marginBottom: 10 }}>
-            {`Step ${safeQi + 1} of ${steps.length}`}
+            {stepEyebrow(safeQi, steps.length)}
           </div>
           <h2 style={{ ...disp, fontWeight: 800, letterSpacing: "-0.03em", lineHeight: 1.05, fontSize: 30, color: INK, margin: "0 0 6px" }}>
             {q.title}
