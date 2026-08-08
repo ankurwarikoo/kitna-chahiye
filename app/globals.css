@@ -1,0 +1,95 @@
+:root {
+  /* Colour tokens — see README "Design tokens". */
+  --cream: #fffbf2;
+  --sand: #f6efe2;
+  --paper: #ffffff;
+  --ink: #17130d;
+  --ink-hover: #2a241b;
+  --ink-rule: #3a332a;
+  --ink-700: #463e31;
+  --ink-500: #6f6557;
+  --ink-400: #938876;
+  --ink-300: #b9ae9b;
+  --line-2: #dfd3bc;
+  --line: #eadfcc;
+  --tint: #efe6d5;
+  --accent: #e14b33;
+  --positive: #1e8e5a;
+}
+
+* {
+  box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  /* Everything above the 412px design width is a centred column on sand. */
+  background: var(--sand);
+  color: var(--ink);
+  font-family: var(--font-body), system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+::selection {
+  background: #ffe08a;
+}
+
+a {
+  color: var(--ink);
+}
+a:hover {
+  color: var(--accent);
+}
+
+/* Tabular figures everywhere numbers matter, so nothing jitters. */
+.tnum {
+  font-variant-numeric: tabular-nums;
+}
+
+.font-display {
+  font-family: var(--font-display), system-ui, sans-serif;
+}
+.font-mono {
+  font-family: var(--font-mono), ui-monospace, monospace;
+}
+
+button {
+  font-family: inherit;
+}
+
+input {
+  font-family: inherit;
+}
+
+/* Motion happens in exactly two places. This is the shared entrance for
+   everything else: a fade with a small lift. */
+@keyframes kc-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.kc-in {
+  animation: kc-in 0.2s ease-out both;
+}
+
+/* Respect the user's motion preference: skip count-ups and entrances. */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+}
