@@ -1,0 +1,679 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="_ds/design-system-4d5f9833-c0a8-4320-a72d-3fad98860013/tokens/fonts.css">
+<link rel="stylesheet" href="_ds/design-system-4d5f9833-c0a8-4320-a72d-3fad98860013/tokens/colors.css">
+<link rel="stylesheet" href="_ds/design-system-4d5f9833-c0a8-4320-a72d-3fad98860013/tokens/typography.css">
+<link rel="stylesheet" href="_ds/design-system-4d5f9833-c0a8-4320-a72d-3fad98860013/tokens/spacing.css">
+<link rel="stylesheet" href="_ds/design-system-4d5f9833-c0a8-4320-a72d-3fad98860013/tokens/effects.css">
+<link rel="stylesheet" href="_ds/design-system-4d5f9833-c0a8-4320-a72d-3fad98860013/tokens/base.css">
+<link rel="stylesheet" href="_ds/design-system-4d5f9833-c0a8-4320-a72d-3fad98860013/styles.css">
+<script src="_ds/design-system-4d5f9833-c0a8-4320-a72d-3fad98860013/_ds_bundle.js"></script>
+<style>
+  body { margin: 0; background: #F6EFE2; }
+  a { color: #17130D; }
+  a:hover { color: #E14B33; }
+  * { -webkit-tap-highlight-color: transparent; }
+  ::selection { background: #FFE08A; }
+  @keyframes kc-in { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+  @keyframes kc-pulse { 0%,100% { opacity: .35; } 50% { opacity: 1; } }
+</style>
+</helmet>
+
+<div style="min-height:100%;display:flex;align-items:flex-start;justify-content:center;padding:28px 12px;background:#F6EFE2;font-family:'Plus Jakarta Sans',system-ui,sans-serif">
+<x-import component-from-global-scope="AndroidDevice" from="./android-frame.jsx" hint-size="412px,892px">
+
+<sc-if value="{{ isLanding }}" hint-placeholder-val="{{ true }}">
+<div style="min-height:100%;background:#FFFBF2;display:flex;flex-direction:column;justify-content:space-between;padding:64px 24px 28px;box-sizing:border-box">
+  <div>
+    <div style="font-family:'Bricolage Grotesque',system-ui,sans-serif;font-weight:800;font-size:22px;letter-spacing:-0.02em;color:#17130D;margin-bottom:40px">Kitna Chahiye</div>
+    <h1 style="font-family:'Bricolage Grotesque',system-ui,sans-serif;font-weight:800;letter-spacing:-0.035em;line-height:0.95;font-size:56px;color:#17130D;margin:0 0 20px;text-wrap:pretty">How much does your life actually cost?</h1>
+    <p style="font-size:16px;line-height:1.6;color:#6F6557;margin:0;max-width:19em">Nine questions. <br>Then the salary you need to pay for it.</p>
+  </div>
+  <div style="display:flex;flex-direction:column;gap:16px">
+    <button onClick="{{ start }}" style="appearance:none;border:none;cursor:pointer;width:100%;min-height:60px;border-radius:999px;background:#17130D;color:#FFFBF2;font-family:'Plus Jakarta Sans',system-ui,sans-serif;font-size:17px;font-weight:700;letter-spacing:-0.01em" style-hover="background:#2A241B" style-active="transform:scale(0.985)">Find out</button>
+    <div style="display:flex;justify-content:space-between;align-items:center;font-family:'JetBrains Mono',monospace;font-size:11px;color:#938876">
+      <span>Under 3 minutes</span><span>No signup</span><span>Free</span>
+    </div>
+  </div>
+</div>
+</sc-if>
+
+<sc-if value="{{ isQuiz }}" hint-placeholder-val="{{ false }}">
+<div style="min-height:100%;background:#FFFBF2;display:flex;flex-direction:column;box-sizing:border-box">
+  <div style="position:sticky;top:0;z-index:5;background:#FFFBF2;border-bottom:1px solid #EADFCC;padding:14px 20px 12px;display:flex;align-items:center;justify-content:space-between;gap:16px">
+    <div style="display:flex;gap:6px;align-items:center">
+      <sc-for list="{{ dots }}" as="d" hint-placeholder-count="9">
+        <div style="height:6px;border-radius:999px;transition:all .25s ease-out;width:{{ d.w }};background:{{ d.bg }}"></div>
+      </sc-for>
+    </div>
+    <div style="text-align:right;flex-shrink:0">
+      <div style="font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:0.14em;text-transform:uppercase;color:#B9AE9B;margin-bottom:1px">So far</div>
+      <div style="font-family:'Bricolage Grotesque',system-ui,sans-serif;font-weight:800;font-size:22px;letter-spacing:-0.02em;color:{{ meterColor }};font-variant-numeric:tabular-nums;line-height:1">{{ meterText }}</div>
+    </div>
+  </div>
+
+  <div style="flex:1;padding:28px 20px 24px">
+    <div style="font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:0.16em;text-transform:uppercase;color:#B9AE9B;margin-bottom:10px">{{ qEyebrow }}</div>
+    <h2 style="font-family:'Bricolage Grotesque',system-ui,sans-serif;font-weight:800;letter-spacing:-0.03em;line-height:1.05;font-size:30px;color:#17130D;margin:0 0 6px;text-wrap:pretty">{{ qTitle }}</h2>
+    <p style="font-size:14px;line-height:1.5;color:#938876;margin:0 0 24px">{{ qSub }}</p>
+
+    <sc-if value="{{ isWho }}" hint-placeholder-val="{{ false }}">
+      <div style="display:flex;flex-direction:column;gap:28px">
+        <div>
+          <div style="font-size:13px;font-weight:700;color:#463E31;margin-bottom:10px">Your age</div>
+          <input value="{{ ageText }}" onChange="{{ onAge }}" onBlur="{{ blurAge }}" inputmode="numeric" maxlength="2" placeholder="26" style="width:100%;box-sizing:border-box;min-height:60px;padding:0 20px;border-radius:16px;border:2px solid #EADFCC;background:#FFFFFF;font-family:'JetBrains Mono',monospace;font-size:24px;letter-spacing:0.14em;color:#17130D;outline:none" style-focus="border-color:#17130D">
+          <div style="margin-top:12px;font-size:14px;color:#6F6557;line-height:1.5">{{ ageLine }}</div>
+        </div>
+        <div>
+          <div style="font-size:13px;font-weight:700;color:#463E31;margin-bottom:10px">Your pincode</div>
+          <input value="{{ pin }}" onChange="{{ onPin }}" inputmode="numeric" maxlength="6" placeholder="560001" style="width:100%;box-sizing:border-box;min-height:60px;padding:0 20px;border-radius:16px;border:2px solid #EADFCC;background:#FFFFFF;font-family:'JetBrains Mono',monospace;font-size:24px;letter-spacing:0.14em;color:#17130D;outline:none" style-focus="border-color:#17130D">
+          <div style="margin-top:12px;font-size:14px;color:#6F6557;line-height:1.5">{{ cityLine }}</div>
+          <sc-if value="{{ showCityChips }}" hint-placeholder-val="{{ false }}">
+            <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px">
+              <sc-for list="{{ cityChips }}" as="c" hint-placeholder-count="6">
+                <button onClick="{{ c.pick }}" style="appearance:none;cursor:pointer;min-height:44px;padding:0 16px;border-radius:999px;border:1px solid #EADFCC;background:#F6EFE2;color:#463E31;font-size:14px;font-weight:600">{{ c.label }}</button>
+              </sc-for>
+            </div>
+          </sc-if>
+        </div>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ isPlain }}" hint-placeholder-val="{{ false }}">
+      <div style="display:flex;flex-direction:column;gap:10px">
+        <sc-for list="{{ qOptions }}" as="opt" hint-placeholder-count="5">
+          <button onClick="{{ opt.pick }}" style="appearance:none;cursor:pointer;text-align:left;width:100%;min-height:64px;padding:14px 18px;border-radius:18px;display:flex;align-items:center;justify-content:space-between;gap:14px;transition:all .15s ease-out;border:2px solid {{ opt.bd }};background:{{ opt.bg }}">
+            <span style="display:flex;flex-direction:column;gap:3px">
+              <span style="font-size:16px;font-weight:700;letter-spacing:-0.01em;color:#17130D">{{ opt.label }}</span>
+              <span style="font-size:13px;color:#938876">{{ opt.sub }}</span>
+            </span>
+            <span style="font-family:'JetBrains Mono',monospace;font-size:13px;flex-shrink:0;color:{{ opt.amtColor }}">{{ opt.amt }}</span>
+          </button>
+        </sc-for>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ isDebt }}" hint-placeholder-val="{{ false }}">
+      <div style="display:flex;flex-direction:column;gap:10px">
+        <sc-for list="{{ debtRows }}" as="d" hint-placeholder-count="4">
+          <div style="border-radius:18px;transition:all .15s ease-out;border:2px solid {{ d.bd }};background:{{ d.bg }}">
+            <button onClick="{{ d.pick }}" style="appearance:none;cursor:pointer;text-align:left;width:100%;min-height:64px;padding:14px 18px;border:none;background:transparent;border-radius:16px;display:flex;align-items:center;justify-content:space-between;gap:14px">
+              <span style="display:flex;flex-direction:column;gap:3px">
+                <span style="font-size:16px;font-weight:700;letter-spacing:-0.01em;color:#17130D">{{ d.label }}</span>
+                
+              </span>
+              <span style="flex-shrink:0;width:24px;height:24px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;transition:all .15s ease-out;border:2px solid {{ d.boxBd }};background:{{ d.boxBg }};color:#FFFBF2">{{ d.tick }}</span>
+            </button>
+            <sc-if value="{{ d.on }}" hint-placeholder-val="{{ false }}">
+              <div style="padding:0 18px 18px;display:flex;flex-direction:column;gap:14px;animation:kc-in .2s ease-out both">
+                <div>
+                  <div style="font-size:13px;font-weight:700;color:#463E31;margin-bottom:8px">How much do you pay a month?</div>
+                  <div style="display:flex;align-items:center;gap:8px;min-height:52px;padding:0 16px;border-radius:14px;border:1px solid #EADFCC;background:#FFFFFF">
+                    <span style="font-family:'JetBrains Mono',monospace;font-size:18px;color:#938876">₹</span>
+                    <input value="{{ d.emi }}" onChange="{{ d.onEmi }}" inputmode="numeric" placeholder="{{ d.emiPh }}" style="flex:1;min-width:0;border:none;outline:none;background:transparent;font-family:'JetBrains Mono',monospace;font-size:18px;color:#17130D">
+                  </div>
+                </div>
+                <sc-if value="{{ d.hasYears }}" hint-placeholder-val="{{ false }}">
+                  <div style="display:flex;align-items:center;gap:10px">
+                    <span style="font-size:13px;color:#6F6557">Years left on it?</span>
+                    <input value="{{ d.yrs }}" onChange="{{ d.onYrs }}" inputmode="numeric" maxlength="2" placeholder="7" style="width:66px;min-height:44px;padding:0 12px;box-sizing:border-box;border-radius:12px;border:1px solid #EADFCC;background:#FFFFFF;font-family:'JetBrains Mono',monospace;font-size:16px;color:#17130D;outline:none;text-align:center">
+                    <span style="font-family:'JetBrains Mono',monospace;font-size:11px;color:#B9AE9B">optional</span>
+                  </div>
+                </sc-if>
+              </div>
+            </sc-if>
+          </div>
+        </sc-for>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ isToggles }}" hint-placeholder-val="{{ false }}">
+      <div style="display:flex;flex-direction:column;gap:14px">
+        <sc-for list="{{ toggleOpts }}" as="t" hint-placeholder-count="3">
+          <button onClick="{{ t.flip }}" style="appearance:none;cursor:pointer;text-align:left;width:100%;padding:22px;border-radius:24px;display:flex;align-items:flex-start;justify-content:space-between;gap:16px;transition:all .2s ease-out;border:2px solid {{ t.bd }};background:{{ t.bg }}">
+            <span style="display:flex;flex-direction:column;gap:6px">
+              <span style="font-family:'Bricolage Grotesque',system-ui,sans-serif;font-size:20px;font-weight:800;letter-spacing:-0.02em;line-height:1.15;color:#17130D">{{ t.label }}</span>
+              <span style="font-size:13px;line-height:1.5;color:#6F6557">{{ t.sub }}</span>
+              <span style="font-family:'JetBrains Mono',monospace;font-size:12px;margin-top:2px;color:{{ t.amtColor }}">{{ t.amt }}</span>
+            </span>
+            <span style="flex-shrink:0;width:52px;height:32px;border-radius:999px;padding:3px;box-sizing:border-box;transition:background .2s ease-out;background:{{ t.trackBg }}">
+              <span style="display:block;width:26px;height:26px;border-radius:999px;background:#FFFFFF;transition:transform .2s ease-out;transform:{{ t.knob }}"></span>
+            </span>
+          </button>
+        </sc-for>
+      </div>
+    </sc-if>
+  </div>
+
+  <div style="position:sticky;bottom:0;background:#FFFBF2;border-top:1px solid #EADFCC;padding:14px 20px 18px;display:flex;gap:12px;align-items:center">
+    <button onClick="{{ back }}" style="appearance:none;cursor:pointer;min-height:56px;padding:0 22px;border-radius:999px;border:2px solid #EADFCC;background:transparent;color:#463E31;font-size:15px;font-weight:700;font-family:'Plus Jakarta Sans',system-ui,sans-serif">Back</button>
+    <button onClick="{{ next }}" style="appearance:none;border:none;cursor:pointer;flex:1;min-height:56px;border-radius:999px;background:#17130D;color:#FFFBF2;font-family:'Plus Jakarta Sans',system-ui,sans-serif;font-size:16px;font-weight:700" style-active="transform:scale(0.985)">{{ nextLabel }}</button>
+  </div>
+</div>
+</sc-if>
+
+<sc-if value="{{ isCalc }}" hint-placeholder-val="{{ false }}">
+<div style="min-height:100%;background:#FFFBF2;display:flex;flex-direction:column;justify-content:center;padding:40px 28px;box-sizing:border-box">
+  <div style="font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:0.16em;text-transform:uppercase;color:#B9AE9B;margin-bottom:20px">Working it out</div>
+  <div style="display:flex;flex-direction:column;gap:16px">
+    <sc-for list="{{ calcLines }}" as="l" hint-placeholder-count="3">
+      <div style="display:flex;align-items:center;gap:12px;font-size:16px;line-height:1.4;transition:opacity .4s ease-out;color:{{ l.color }};opacity:{{ l.op }}">
+        <span style="font-family:'JetBrains Mono',monospace;font-size:13px;color:{{ l.markColor }}">{{ l.mark }}</span>
+        <span>{{ l.text }}</span>
+      </div>
+    </sc-for>
+  </div>
+</div>
+</sc-if>
+
+<sc-if value="{{ isResult }}" hint-placeholder-val="{{ false }}">
+<div style="background:#FFFBF2;padding-bottom:40px">
+
+  <div style="display:flex;flex-direction:column;padding:36px 24px 0;box-sizing:border-box;animation:kc-in .5s ease-out both">
+    <div style="font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:0.16em;text-transform:uppercase;color:#938876;margin-bottom:18px">{{ resultCity }} · what your life costs</div>
+    <div style="font-family:'Bricolage Grotesque',system-ui,sans-serif;font-weight:800;letter-spacing:-0.045em;line-height:0.88;font-size:72px;font-variant-numeric:tabular-nums;color:{{ accent }}">{{ bigNumber }}</div>
+    <div style="font-family:'Bricolage Grotesque',system-ui,sans-serif;font-weight:800;letter-spacing:-0.03em;font-size:26px;color:#17130D;margin-top:8px">a month, in hand.</div>
+    <div style="height:1px;background:#EADFCC;margin:26px 0 18px"></div>
+    <div style="font-size:17px;line-height:1.55;color:#463E31">That is a <strong style="font-weight:800">{{ salaryText }}</strong> salary, before tax and PF.</div>
+    <div style="font-family:'JetBrains Mono',monospace;font-size:11px;color:#B9AE9B;margin-top:10px">Gross to in-hand assumed at 93% · updated Jun 2026</div>
+  </div>
+
+  <div style="padding:28px 20px 0">
+    <div style="font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:0.16em;text-transform:uppercase;color:#B9AE9B;margin-bottom:14px">Where it goes</div>
+    <div style="display:flex;height:22px;border-radius:999px;overflow:hidden;gap:2px;margin-bottom:18px">
+      <sc-for list="{{ segments }}" as="s" hint-placeholder-count="6">
+        <div onClick="{{ s.tap }}" style="cursor:pointer;transition:all .2s ease-out;width:{{ s.w }};background:{{ s.color }};opacity:{{ s.op }}"></div>
+      </sc-for>
+    </div>
+
+    <div style="display:flex;flex-direction:column">
+      <sc-for list="{{ rows }}" as="r" hint-placeholder-count="6">
+        <div style="border-bottom:1px solid #EADFCC">
+          <div onClick="{{ r.tap }}" style="cursor:pointer;display:flex;align-items:center;gap:12px;padding:15px 0;min-height:52px;box-sizing:border-box">
+            <span style="width:10px;height:10px;border-radius:3px;flex-shrink:0;background:{{ r.color }}"></span>
+            <span style="flex:1;font-size:15px;font-weight:700;letter-spacing:-0.01em;color:#17130D">{{ r.label }}</span>
+            <span style="font-family:'JetBrains Mono',monospace;font-size:12px;color:#B9AE9B">{{ r.pct }}</span>
+            <span style="font-family:'JetBrains Mono',monospace;font-size:15px;color:#17130D;font-variant-numeric:tabular-nums">{{ r.amt }}</span>
+          </div>
+          <sc-if value="{{ r.open }}" hint-placeholder-val="{{ false }}">
+            <div style="padding:0 0 18px 22px;display:flex;flex-direction:column;gap:12px;animation:kc-in .2s ease-out both">
+              <div style="font-size:14px;line-height:1.6;color:#6F6557">{{ r.note }}</div>
+              <button onClick="{{ r.tapSrc }}" style="appearance:none;cursor:pointer;align-self:flex-start;min-height:30px;padding:0 12px;border-radius:999px;border:1px solid #EADFCC;background:#F6EFE2;font-family:'JetBrains Mono',monospace;font-size:11px;color:#6F6557">{{ r.src }}</button>
+              <sc-if value="{{ r.srcOpen }}" hint-placeholder-val="{{ false }}">
+                <div style="font-size:13px;line-height:1.6;color:#938876;border-left:2px solid #EADFCC;padding-left:12px">{{ r.srcDetail }}</div>
+              </sc-if>
+              <sc-if value="{{ r.isRent }}" hint-placeholder-val="{{ false }}">
+                <div>
+                  <button onClick="{{ openCorrection }}" style="appearance:none;cursor:pointer;background:none;border:none;padding:0;font-size:13px;color:#6F6557;text-decoration:underline;text-underline-offset:3px">This isn't right for my area</button>
+                  <sc-if value="{{ corrOpen }}" hint-placeholder-val="{{ false }}">
+                    <div style="display:flex;gap:8px;margin-top:12px">
+                      <input value="{{ corrVal }}" onChange="{{ onCorr }}" placeholder="What do you actually pay?" style="flex:1;min-width:0;min-height:44px;padding:0 14px;border-radius:12px;border:1px solid #EADFCC;background:#FFFFFF;font-size:14px;font-family:'Plus Jakarta Sans',system-ui,sans-serif;color:#17130D;outline:none">
+                      <button onClick="{{ sendCorr }}" style="appearance:none;border:none;cursor:pointer;min-height:44px;padding:0 16px;border-radius:12px;background:#17130D;color:#FFFBF2;font-size:14px;font-weight:700">{{ corrBtn }}</button>
+                    </div>
+                  </sc-if>
+                </div>
+              </sc-if>
+            </div>
+          </sc-if>
+        </div>
+      </sc-for>
+    </div>
+  </div>
+
+  <div style="padding:44px 20px 0">
+    <div style="font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:0.16em;text-transform:uppercase;color:#B9AE9B;margin-bottom:16px">The gap</div>
+    <div style="position:relative;height:118px;margin-bottom:8px">
+      <div style="position:absolute;left:0;right:0;top:64px;height:2px;background:#EADFCC"></div>
+      <div style="position:absolute;top:52px;transform:translateX(-50%);left:{{ medianPos }}">
+        <div style="width:2px;height:26px;background:#938876;margin:0 auto"></div>
+      </div>
+      <div style="position:absolute;top:80px;transform:translateX(-50%);text-align:center;width:130px;left:{{ medianPos }}">
+        <div style="font-family:'JetBrains Mono',monospace;font-size:13px;color:#6F6557">{{ medianAmt }}</div>
+        <div style="font-size:11px;color:#938876;line-height:1.3;margin-top:2px">median urban salaried</div>
+      </div>
+      <div style="position:absolute;top:6px;transform:translateX(-50%);text-align:center;width:120px;left:{{ youPos }}">
+        <div style="font-size:11px;color:#938876;margin-bottom:3px">you need</div>
+        <div style="font-family:'JetBrains Mono',monospace;font-size:14px;font-weight:700;color:{{ accent }}">{{ youAmt }}</div>
+      </div>
+      <div style="position:absolute;top:44px;width:2px;height:22px;transform:translateX(-50%);left:{{ youPos }};background:{{ accent }}"></div>
+    </div>
+    <p style="font-size:16px;line-height:1.6;color:#463E31;margin:16px 0 0">{{ gapLine }}</p>
+    <div style="font-family:'JetBrains Mono',monospace;font-size:11px;color:#B9AE9B;margin-top:8px">Salaried income distribution, urban India · 2026</div>
+  </div>
+
+  <div style="margin:44px 20px 0;padding:28px 24px;border-radius:28px;background:#17130D">
+    <div style="font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:0.16em;text-transform:uppercase;color:#938876;margin-bottom:14px">One thing you didn't ask about</div>
+    <div style="font-family:'Bricolage Grotesque',system-ui,sans-serif;font-weight:800;letter-spacing:-0.025em;line-height:1.15;font-size:26px;color:#FFFBF2;text-wrap:pretty">{{ insight }}</div>
+  </div>
+
+  <div style="padding:44px 20px 0">
+    <div style="display:flex;flex-direction:column;gap:10px">
+      <button onClick="{{ copyLink }}" style="appearance:none;border:none;cursor:pointer;width:100%;min-height:58px;border-radius:999px;background:#17130D;color:#FFFBF2;font-family:'Plus Jakarta Sans',system-ui,sans-serif;font-size:16px;font-weight:700">{{ copyLabel }}</button>
+      <button onClick="{{ restart }}" style="appearance:none;cursor:pointer;width:100%;min-height:52px;border-radius:999px;border:2px solid #EADFCC;background:transparent;color:#463E31;font-family:'Plus Jakarta Sans',system-ui,sans-serif;font-size:15px;font-weight:700">Change my answers</button>
+    </div>
+    <div style="font-size:12px;line-height:1.6;color:#B9AE9B;margin-top:14px">The link carries your answers, not your pincode.</div>
+  </div>
+
+  <div style="margin-top:44px;padding:24px 20px 0;border-top:1px solid #EADFCC;display:flex;justify-content:space-between;align-items:center">
+    <a href="#methodology" style="font-size:13px;color:#6F6557;text-decoration:underline;text-underline-offset:3px">Methodology and sources</a>
+  </div>
+</div>
+</sc-if>
+
+</x-import>
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:520,&quot;height&quot;:1000},&quot;accent&quot;:{&quot;editor&quot;:&quot;color&quot;,&quot;default&quot;:&quot;#E14B33&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;options&quot;:[&quot;#E14B33&quot;,&quot;#17130D&quot;,&quot;#2C6FB3&quot;,&quot;#1E8E5A&quot;],&quot;section&quot;:&quot;Look&quot;},&quot;revealMs&quot;:{&quot;editor&quot;:&quot;range&quot;,&quot;default&quot;:2600,&quot;min&quot;:800,&quot;max&quot;:5000,&quot;step&quot;:200,&quot;unit&quot;:&quot;ms&quot;,&quot;tsType&quot;:&quot;number&quot;,&quot;section&quot;:&quot;Motion&quot;}}">
+class Component extends DCLogic {
+  cityTable = {
+    '40': ['Mumbai', 'Maharashtra', 1.55], '41': ['Pune', 'Maharashtra', 0.85], '44': ['Nagpur', 'Maharashtra', 0.5],
+    '11': ['Delhi', 'Delhi', 1.15], '12': ['Gurugram', 'Haryana', 1.25], '20': ['Noida', 'Uttar Pradesh', 1.0],
+    '56': ['Bengaluru', 'Karnataka', 1.0], '57': ['Mysuru', 'Karnataka', 0.5],
+    '50': ['Hyderabad', 'Telangana', 0.8], '60': ['Chennai', 'Tamil Nadu', 0.8], '64': ['Coimbatore', 'Tamil Nadu', 0.5],
+    '70': ['Kolkata', 'West Bengal', 0.7], '38': ['Ahmedabad', 'Gujarat', 0.6], '39': ['Surat', 'Gujarat', 0.55],
+    '30': ['Jaipur', 'Rajasthan', 0.55], '45': ['Indore', 'Madhya Pradesh', 0.5], '46': ['Bhopal', 'Madhya Pradesh', 0.45],
+    '22': ['Lucknow', 'Uttar Pradesh', 0.45], '80': ['Patna', 'Bihar', 0.4], '75': ['Bhubaneswar', 'Odisha', 0.45],
+    '68': ['Kochi', 'Kerala', 0.55], '14': ['Chandigarh', 'Punjab', 0.65], '78': ['Guwahati', 'Assam', 0.5],
+    '24': ['Dehradun', 'Uttarakhand', 0.5]
+  };
+
+  qs = [
+    { key: 'who', eyebrow: 'One of nine', title: 'Where are you living?', sub: 'Rent is the whole game, and it is local.' },
+    { key: 'roof', eyebrow: 'Two of nine', title: 'How do you live?', sub: 'Rent plus maintenance. Deposit not counted.',
+      opts: [
+        { label: 'With family / Own house', sub: 'You contribute something', v: 2500, n: 'You live with family in {city} and put something into the house every month.' },
+        { label: 'PG or shared room', sub: 'Your share of a flat', v: 11000, n: 'Your share of a PG or a shared flat in {city}, including maintenance.' },
+        { label: 'Rent 1BHK, alone', sub: 'Decent building, okay locality', v: 24000, n: 'A one-bedroom flat to yourself in {city}, including maintenance.' },
+        { label: 'Rent 2BHK, alone', sub: 'Space for a desk and guests', v: 36000, n: 'A two-bedroom flat to yourself in {city}, including maintenance.' },
+        { label: 'Rent 2BHK, prime area', sub: 'The address people recognise', v: 55000, n: 'A two-bedroom flat in a prime part of {city}, including maintenance.' }
+      ] },
+    { key: 'commute', eyebrow: 'Three of nine', title: 'How do you get to work?', sub: 'Fuel, fares, servicing, parking.',
+      opts: [
+        { label: 'I work from home', sub: 'Occasional trips out', v: 500, n: 'You work from home, so this is only the occasional trip out.' },
+        { label: 'Metro or bus', sub: 'Daily pass or monthly card', v: 1800, n: 'A monthly metro or bus pass at current {state} fares.' },
+        { label: 'Two-wheeler', sub: 'Petrol, service, insurance', v: 3200, n: 'A two-wheeler: petrol, servicing and insurance at current {state} rates.' },
+        { label: 'Cabs and autos', sub: 'Both ways, most days', v: 7500, n: 'Cabs and autos both ways on most days, at current {state} fares.' },
+        { label: 'Car', sub: 'Fuel, EMI-free but not free', v: 14000, n: 'A car: fuel, servicing, insurance and parking at current {state} rates. Any EMI is counted separately.' }
+      ] },
+    { key: 'foodBase', eyebrow: 'Four of nine', title: 'Does the kitchen get used?', sub: 'Groceries, milk, the cook or the tiffin.',
+      opts: [
+        { label: 'I cook most days', sub: 'Groceries and gas', v: 5200, n: 'Groceries and gas for someone who cooks most days' },
+        { label: 'I cook sometimes', sub: 'Groceries plus a tiffin service', v: 7800, n: 'Groceries plus a tiffin service' },
+        { label: 'I mostly do not cook', sub: 'Tiffin, milk, and whatever is quick', v: 12500, n: 'Tiffin, milk and whatever is quick, for a kitchen that mostly stays shut' }
+      ] },
+    { key: 'foodFun', eyebrow: 'Five of nine', title: 'How often do you order food or grocery?', sub: 'Delivery apps and eating out, both counted.',
+      opts: [
+        { label: 'Rarely', sub: 'A treat, not a habit', v: 1500, n: 'plus the rare meal out.' },
+        { label: 'Once a week', sub: 'Friday is Friday', v: 4200, n: 'plus about one delivery or meal out a week.' },
+        { label: 'Two or three times a week', sub: 'Plus a weekend dinner out', v: 8500, n: 'plus two or three deliveries or meals out a week.' },
+        { label: 'Most days', sub: 'The app knows your address by heart', v: 14000, n: 'plus something ordered in or eaten out on most days.' }
+      ] },
+    { key: 'bills', eyebrow: 'Six of nine', title: 'What do the bills look like?', sub: 'Electricity, internet, phone, gas, water.',
+      opts: [
+        { label: 'Bare minimum', sub: 'Fan, lights, one broadband line', v: 2400, n: 'Fans, lights and one broadband line, at the {state} slab tariff, plus phone and gas.' },
+        { label: 'AC in summer', sub: 'Three or four heavy months', v: 3800, n: 'An AC running three or four months a year, at the {state} slab tariff, plus broadband, phone and gas.' },
+        { label: 'AC most of the year', sub: 'And a second connection', v: 6200, n: 'An AC running most of the year, at the {state} slab tariff, plus two connections, phone and gas.' }
+      ] },
+    { key: 'body', eyebrow: 'Seven of nine', title: 'What do you spend on your body?', sub: 'Gym, sport, therapy, medicines, insurance premium.',
+      opts: [
+        { label: 'Nothing regular', sub: 'Medicines when something goes wrong', v: 900, n: 'No gym and no regular treatment. Medicines and the occasional consultation, nothing else.' },
+        { label: 'A gym membership', sub: 'Plus health insurance premium', v: 2600, n: 'A gym membership, plus an individual health insurance premium.' },
+        { label: 'Gym, a sport, therapy', sub: 'You treat it as non-negotiable', v: 5600, n: 'A gym, a sport and therapy, plus an individual health insurance premium.' }
+      ] },
+    { key: 'debt', eyebrow: 'Eight of nine', title: 'What do you owe every month?', sub: 'EMIs and anything you are carrying on a card. Pick all that apply.', debt: true },
+    { key: 'comfort', eyebrow: 'Nine of nine', title: 'What does comfortable mean to you?', sub: 'This is where you set the standard, not us.' }
+  ];
+
+  debtDefs = [
+    { k: 'edu', label: 'An education loan', sub: 'The most common one at your age', v: 12000, years: true },
+    { k: 'vehicle', label: 'A Car/Bike Loan', sub: 'Bike or car', v: 9000, years: true },
+    { k: 'card', label: 'A credit card monthly spend', sub: 'Minimum due, every month', v: 6000 },
+    { k: 'other', label: 'Personal (or any other) loan', sub: 'Personal, home, family, anything else', v: 15000, years: true }
+  ];
+
+  toggleDefs = [
+    { key: 'out', label: 'Going out without checking the bill', sub: 'Drinks, films, birthdays, the round you insist on paying for.', v: 4500 },
+    { key: 'trip', label: 'One real trip a year', sub: 'Flights, a decent room, seven days off. Spread across twelve months.', v: 6250 },
+    { key: 'save', label: 'Saving 20% of what you earn', sub: 'Investing for retirement or a planned purchase.', v: 'pct20' }
+  ];
+
+  state = {
+    step: 'landing', qi: 0, seen: 0,
+    a: {
+      age: '26', pin: '560001', roof: 2, commute: 2, foodBase: 1, foodFun: 1, bills: 1, body: 1,
+      d: { edu: { on: false, emi: '', yrs: '' }, vehicle: { on: false, emi: '', yrs: '' }, card: { on: false, emi: '', yrs: '' }, other: { on: false, emi: '', yrs: '' } },
+      t: { out: true, trip: true, save: true }
+    },
+    meter: 0, big: 0, calcStep: 0,
+    openRow: null, openSrc: null,
+    corrOpen: false, corrVal: '', corrSent: false, copied: false
+  };
+
+  componentDidMount() {
+    try {
+      const h = (location.hash || '').replace(/^#/, '');
+      if (h.indexOf('kc=') === 0) {
+        const o = JSON.parse(decodeURIComponent(h.slice(3)));
+        this.setState({ a: Object.assign({}, this.state.a, o), step: 'result', seen: 8 }, () => this.showResult());
+      }
+    } catch (e) { /* ignore malformed link */ }
+  }
+  componentWillUnmount() { this.timers && this.timers.forEach(clearTimeout); }
+
+  timers = [];
+  fmt = (n) => '\u20B9' + Math.round(n).toLocaleString('en-IN');
+  lakh = (n) => '\u20B9' + (n / 100000).toFixed(1) + ' lakh';
+  digits = (s) => (s || '').replace(/\D/g, '');
+  grouped = (s) => { const d = this.digits(s); return d ? parseInt(d, 10).toLocaleString('en-IN') : ''; };
+
+  ageNum() { const n = parseInt(this.digits(this.state.a.age), 10); return isNaN(n) ? 26 : Math.max(18, Math.min(70, n)); }
+
+  city() {
+    const p = (this.state.a.pin || '').trim();
+    const hit = this.cityTable[p.slice(0, 2)];
+    if (p.length === 6 && hit) return { name: hit[0], state: hit[1], idx: hit[2], known: true };
+    return { name: 'your city', state: 'your state', idx: 0.5, known: false };
+  }
+
+  idxFor(key, c) { return key === 'roof' ? c.idx : 0.78 + 0.22 * c.idx; }
+  priced(key, i, c) {
+    const o = this.qs.find(x => x.key === key).opts[i];
+    return Math.round(o.v * this.idxFor(key, c) / 100) * 100;
+  }
+
+  dRow(k) { return (this.state.a.d && this.state.a.d[k]) || { on: false, emi: '', yrs: '' }; }
+  debtOf(k) {
+    const row = this.dRow(k), def = this.debtDefs.find(x => x.k === k);
+    if (!row || !row.on) return 0;
+    const typed = parseInt(this.digits(row.emi), 10);
+    return isNaN(typed) ? def.v : typed;
+  }
+  debtTotal() { return this.debtDefs.reduce((s, d) => s + this.debtOf(d.k), 0); }
+  debtOn() { return this.debtDefs.filter(d => this.dRow(d.k).on); }
+
+  model() {
+    const a = this.state.a, c = this.city();
+    const costIdx = 0.78 + 0.22 * c.idx;
+    const p = (k) => this.priced(k, a[k], c);
+    const rent = p('roof'), commute = p('commute'), foodBase = p('foodBase');
+    const foodFun = p('foodFun'), bills = p('bills'), body = p('body');
+    const debt = this.debtTotal();
+    const core = rent + commute + foodBase + foodFun + bills + body;
+    const misc = Math.round(core * 0.08 / 100) * 100;
+    const out = a.t.out ? Math.round(4500 * costIdx / 100) * 100 : 0;
+    const trip = a.t.trip ? Math.round(6250 * costIdx / 100) * 100 : 0;
+    const preSave = core + misc + debt + out + trip;
+    const save = a.t.save ? Math.round(preSave * 0.25 / 100) * 100 : 0;
+    const total = preSave + save;
+    return { c, rent, commute, foodBase, foodFun, bills, body, debt, misc, out, trip, save, total,
+      food: foodBase + foodFun, life: out + trip + misc };
+  }
+
+  partial() {
+    const m = this.model(), s = this.state.seen;
+    let t = 0;
+    if (s >= 1) t += m.rent;
+    if (s >= 2) t += m.commute;
+    if (s >= 3) t += m.foodBase;
+    if (s >= 4) t += m.foodFun;
+    if (s >= 5) t += m.bills;
+    if (s >= 6) t += m.body;
+    if (s >= 7) t += m.debt;
+    if (s >= 8) t += m.out + m.trip + m.save + m.misc;
+    return t;
+  }
+
+  animate(field, to, ms) {
+    const from = this.state[field] || 0, t0 = performance.now();
+    if (this.rafs && this.rafs[field]) cancelAnimationFrame(this.rafs[field]);
+    this.rafs = this.rafs || {};
+    const settle = () => { const s = {}; s[field] = to; this.setState(s); };
+    if (typeof document !== 'undefined' && document.hidden) { settle(); return; }
+    this.timers.push(setTimeout(settle, ms + 250));
+    const tick = (now) => {
+      const p = Math.min(1, (now - t0) / ms), e = 1 - Math.pow(1 - p, 3);
+      const s = {}; s[field] = from + (to - from) * e;
+      this.setState(s);
+      if (p < 1) this.rafs[field] = requestAnimationFrame(tick);
+    };
+    this.rafs[field] = requestAnimationFrame(tick);
+  }
+
+  bump() { this.animate('meter', this.partial(), 520); }
+  patch(fields) { const a = Object.assign({}, this.state.a, fields); this.setState({ a }, () => this.bump()); }
+  set(key, i) { this.patch({ [key]: i }); }
+  flip(k) { const t = Object.assign({}, this.state.a.t); t[k] = !t[k]; this.patch({ t }); }
+
+  setDebt(k, fields) {
+    const d = Object.assign({}, this.state.a.d);
+    d[k] = Object.assign({ on: false, emi: '', yrs: '' }, d[k], fields);
+    this.patch({ d });
+  }
+  clearDebt() {
+    const d = {};
+    this.debtDefs.forEach(x => { d[x.k] = { on: false, emi: '', yrs: '' }; });
+    this.patch({ d });
+  }
+
+  go(qi) { this.setState({ step: 'quiz', qi, seen: Math.max(this.state.seen, qi) }, () => this.bump()); }
+
+  runCalc() {
+    this.setState({ step: 'calc', calcStep: 0 });
+    const ms = this.props.revealMs ?? 2600;
+    this.timers.push(setTimeout(() => this.setState({ calcStep: 1 }), ms * 0.3));
+    this.timers.push(setTimeout(() => this.setState({ calcStep: 2 }), ms * 0.62));
+    this.timers.push(setTimeout(() => this.showResult(), ms));
+  }
+
+  showResult() {
+    const m = this.model();
+    this.setState({ step: 'result', big: 0 });
+    this.writeHash();
+    this.animate('big', m.total, 1100);
+  }
+
+  writeHash() {
+    try {
+      const a = this.state.a;
+      const o = { age: a.age, roof: a.roof, commute: a.commute, foodBase: a.foodBase, foodFun: a.foodFun,
+        bills: a.bills, body: a.body, d: a.d, t: a.t, pin: a.pin };
+      history.replaceState(null, '', '#kc=' + encodeURIComponent(JSON.stringify(o)));
+    } catch (e) { /* sandboxed */ }
+  }
+
+  pctile(x) {
+    const t = [[10000, 20], [22000, 50], [38000, 75], [62000, 90], [95000, 95], [185000, 99]];
+    if (x <= t[0][0]) return 15;
+    for (let i = 1; i < t.length; i++) {
+      if (x <= t[i][0]) {
+        const [x0, p0] = t[i - 1], [x1, p1] = t[i];
+        return p0 + (p1 - p0) * (Math.log(x / x0) / Math.log(x1 / x0));
+      }
+    }
+    return 99.4;
+  }
+
+  insightLine() {
+    const m = this.model();
+    const rentPct = m.rent / m.total, foodYr = m.foodFun * 12;
+    const cands = [
+      { s: foodYr / 60000, text: 'You will spend ' + this.fmt(foodYr) + ' on delivery and eating out next year.' },
+      { s: rentPct / 0.25, text: 'Rent is ' + Math.round(rentPct * 100) + '% of your take-home. The rule of thumb is 25%.' }
+    ];
+    if (m.debt > 0) {
+      const debtPct = m.debt / (m.total - m.debt);
+      cands.push({ s: debtPct / 0.15, text: 'What you owe is ' + Math.round(debtPct * 100) + '% of everything else you spend.' });
+      const withYrs = this.debtOn().filter(d => parseInt(this.digits(this.dRow(d.k).yrs), 10) > 0);
+      if (withYrs.length) {
+        const y = parseInt(this.digits(this.dRow(withYrs[0].k).yrs), 10);
+        cands.push({ s: 1.4, text: withYrs[0].label.replace(/^An? /, '').replace(/^A /, '') + ' ends in ' + (2026 + y) + '. That is ' + this.fmt(this.debtOf(withYrs[0].k) * 12 * y) + ' between now and then.' });
+      }
+    }
+    cands.sort((x, y) => y.s - x.s);
+    return cands[0].text;
+  }
+
+  logPos(v) {
+    const lo = Math.log(12000), hi = Math.log(260000);
+    const p = (Math.log(Math.max(12000, Math.min(260000, v))) - lo) / (hi - lo);
+    return (8 + p * 84).toFixed(1) + '%';
+  }
+
+  renderVals() {
+    const st = this.state, a = st.a, accent = this.props.accent ?? '#E14B33';
+    const q = this.qs[st.qi], m = this.model(), c = m.c;
+    const ink = '#17130D', line = '#EADFCC', paper = '#FFFFFF';
+
+    const dots = this.qs.map((_, i) => ({
+      w: i === st.qi ? '20px' : '6px',
+      bg: i === st.qi ? ink : (i < st.seen ? '#B9AE9B' : line)
+    }));
+
+    const qOptions = (q.opts || []).map((o, i) => ({
+      label: o.label, sub: o.sub,
+      amt: this.fmt(this.priced(q.key, i, c)),
+      amtColor: a[q.key] === i ? ink : '#B9AE9B',
+      bd: a[q.key] === i ? ink : line,
+      bg: a[q.key] === i ? paper : 'transparent',
+      pick: () => this.set(q.key, i)
+    }));
+
+    const anyDebt = this.debtOn().length > 0;
+    const debtRows = [{ k: 'none', label: 'No loans :))', sub: 'Loan free! :))' }].concat(this.debtDefs).map(d => {
+      const row = d.k === 'none' ? { on: false, emi: '', yrs: '' } : this.dRow(d.k);
+      const on = d.k === 'none' ? !anyDebt : row.on;
+      return {
+        label: d.label, sub: d.sub, on: d.k !== 'none' && on,
+        bd: on ? ink : line, bg: on ? paper : 'transparent',
+        boxBd: on ? ink : '#DFD3BC', boxBg: on ? ink : 'transparent', tick: on ? '✓' : '',
+        hasYears: !!d.years,
+        emi: this.grouped(row.emi),
+        emiPh: d.k === 'none' ? '' : d.v.toLocaleString('en-IN'),
+        yrs: row.yrs,
+        pick: () => d.k === 'none' ? this.clearDebt() : this.setDebt(d.k, { on: !row.on }),
+        onEmi: (e) => this.setDebt(d.k, { emi: this.digits(e.target.value).slice(0, 7) }),
+        onYrs: (e) => this.setDebt(d.k, { yrs: this.digits(e.target.value).slice(0, 2) })
+      };
+    });
+
+    const toggleOpts = this.toggleDefs.map(t => {
+      const on = a.t[t.key];
+      const amt = t.v === 'pct20' ? (on ? '+ ' + this.fmt(m.save) : '+ a quarter of the rest') : '+ ' + this.fmt(Math.round(t.v * (0.78 + 0.22 * c.idx) / 100) * 100) + ' a month';
+      return { label: t.label, sub: t.sub, amt: amt,
+        amtColor: on ? accent : '#B9AE9B',
+        bd: on ? ink : line, bg: on ? paper : 'transparent',
+        trackBg: on ? ink : '#DFD3BC',
+        knob: on ? 'translateX(20px)' : 'translateX(0)',
+        flip: () => this.flip(t.key) };
+    });
+
+    const calcTexts = [
+      'Checking rents around ' + (a.pin || 'your pincode') + '.',
+      'Pulling electricity tariffs for ' + c.state + '.',
+      'Working out your tax.'
+    ];
+    const calcLines = calcTexts.map((t, i) => ({
+      text: t, mark: i < st.calcStep ? '✓' : (i === st.calcStep ? '→' : '·'),
+      markColor: i < st.calcStep ? '#1E8E5A' : accent,
+      color: i <= st.calcStep ? '#17130D' : '#B9AE9B',
+      op: i <= st.calcStep ? '1' : '0.35'
+    }));
+
+    const fill = (s) => (s || '').split('{city}').join(c.name).split('{state}').join(c.state);
+    const on = this.debtOn();
+    const debtNote = on.length === 0 ? '' : on.map(d => {
+      const y = parseInt(this.digits(this.dRow(d.k).yrs), 10);
+      return d.label.replace(/^An /, 'an ').replace(/^A /, 'a ') + ' at ' + this.fmt(this.debtOf(d.k)) + ' a month' + (y > 0 ? ', ending in ' + (2026 + y) : '');
+    }).join(', and ') + '. Repayments only, not the balances.';
+
+    const rowDefs = [
+      { k: 'rent', label: 'Rent', amt: m.rent, color: accent, note: fill(this.qs[1].opts[a.roof].n) + ' A deposit is not part of a monthly number.', src: 'Rent index · Jun 2026', srcDetail: 'Median listed rent for this configuration in ' + c.name + ', adjusted to a mid-band locality. Prototype data set, last refreshed June 2026.' },
+      { k: 'food', label: 'Food', amt: m.food, color: '#463E31', note: this.qs[3].opts[a.foodBase].n + ', ' + this.qs[4].opts[a.foodFun].n, src: 'Grocery basket + delivery averages · May 2026', srcDetail: 'Groceries from a 28-item urban basket priced monthly. Delivery averages from published order-value data for metro users. Prototype data set.' },
+      { k: 'debt', label: 'What you owe', amt: m.debt, color: '#6F6557', note: 'You told us: ' + debtNote, src: 'Your own numbers', srcDetail: 'These are the figures you entered, not an estimate. Where you left a field blank we used a typical EMI for that loan type at current rates.' },
+      { k: 'commute', label: 'Getting around', amt: m.commute, color: '#938876', note: fill(this.qs[2].opts[a.commute].n), src: 'Fuel + fare rates · Jul 2026', srcDetail: 'State fuel price, transport authority fare tables, and manufacturer service intervals. Prototype data set.' },
+      { k: 'bills', label: 'Bills', amt: m.bills, color: '#B9AE9B', note: fill(this.qs[5].opts[a.bills].n), src: c.state + ' tariff · Apr 2026', srcDetail: 'Domestic slab tariff as notified by the state regulator, applied to a usage profile matching your answer. Prototype data set.' },
+      { k: 'life', label: 'The rest of your life', amt: m.life, color: '#DFD3BC', note: (a.t.out || a.t.trip ? (a.t.out && a.t.trip ? 'Going out, one trip a year, and roughly' : (a.t.out ? 'Going out, and roughly' : 'One trip a year, and roughly')) : 'Roughly') + ' 8% of your core spend for the things nobody budgets for: clothes, haircuts, gifts, subscriptions, repairs.', src: 'Assumption · stated, not sourced', srcDetail: 'This one is an assumption, not a measurement. 8% of your core spend is what household surveys typically leave unclassified. Change it and everything else stays the same.' },
+      { k: 'body', label: 'Health', amt: m.body, color: '#EFE6D5', note: this.qs[6].opts[a.body].n, src: a.body === 0 ? 'Out-of-pocket medical spend · Jan 2026' : 'Premium tables · Jan 2026', srcDetail: a.body === 0 ? 'Reported out-of-pocket medical spend for an adult in your age band with no cover. Prototype data set.' : 'Individual cover premium for a healthy adult in your age band at a 5 lakh sum insured, plus reported out-of-pocket medical spend. Prototype data set.' },
+      { k: 'save', label: 'Savings', amt: m.save, color: '#F6EFE2', note: 'A quarter of everything above, so that a fifth of your take-home stays yours.', src: 'Your choice on the last screen', srcDetail: 'You turned this on. It is not a cost, it is the difference between covering your life and building on it.' }
+    ].filter(r => r.amt > 0).sort((x, y) => y.amt - x.amt);
+
+    const rows = rowDefs.map(r => ({
+      label: r.label, amt: this.fmt(r.amt), color: r.color,
+      pct: Math.round(r.amt / m.total * 100) + '%',
+      note: r.note, src: r.src, srcDetail: r.srcDetail,
+      open: st.openRow === r.k, srcOpen: st.openSrc === r.k, isRent: r.k === 'rent',
+      tap: () => this.setState({ openRow: st.openRow === r.k ? null : r.k, openSrc: null }),
+      tapSrc: () => this.setState({ openSrc: st.openSrc === r.k ? null : r.k })
+    }));
+
+    const segments = rowDefs.map(r => ({
+      w: (r.amt / m.total * 100).toFixed(2) + '%', color: r.color,
+      op: st.openRow && st.openRow !== r.k ? '0.35' : '1',
+      tap: () => this.setState({ openRow: st.openRow === r.k ? null : r.k, openSrc: null })
+    }));
+
+    const pc = this.pctile(m.total);
+
+    return {
+      accent,
+      isLanding: st.step === 'landing', isQuiz: st.step === 'quiz', isCalc: st.step === 'calc', isResult: st.step === 'result',
+      start: () => this.go(0),
+      restart: () => this.setState({ step: 'landing', qi: 0, seen: 0, meter: 0, big: 0, openRow: null }),
+      dots, qEyebrow: q.eyebrow, qTitle: q.title, qSub: q.sub,
+      isWho: q.key === 'who', isToggles: q.key === 'comfort', isDebt: !!q.debt, isPlain: !!q.opts,
+      qOptions, toggleOpts, debtRows,
+
+      ageText: a.age,
+      onAge: (e) => this.patch({ age: this.digits(e.target.value).slice(0, 2) }),
+      blurAge: () => this.patch({ age: String(this.ageNum()) }),
+      ageLine: 'It sets what a comfortable month looks like at your stage, and it never leaves your device.',
+
+      pin: a.pin,
+      onPin: (e) => this.patch({ pin: this.digits(e.target.value).slice(0, 6) }),
+      cityLine: a.pin.length < 6 ? 'Six digits. We use it for rent and electricity, and it never leaves your device.'
+        : (c.known ? c.name + ', ' + c.state + '. Using local rent and tariff data.' : 'We do not have that pincode yet. Pick the closest city.'),
+      showCityChips: a.pin.length === 6 && !c.known,
+      cityChips: [['Mumbai', '400001'], ['Delhi', '110001'], ['Bengaluru', '560001'], ['Hyderabad', '500001'], ['Pune', '411001'], ['Chennai', '600001']]
+        .map(x => ({ label: x[0], pick: () => this.patch({ pin: x[1] }) })),
+
+      meterText: this.fmt(st.meter), meterColor: st.meter > 0 ? ink : '#DFD3BC',
+      back: () => st.qi === 0 ? this.setState({ step: 'landing' }) : this.go(st.qi - 1),
+      next: () => st.qi === 8 ? this.runCalc() : this.go(st.qi + 1),
+      nextLabel: st.qi === 8 ? 'Show me the number' : 'Next',
+      calcLines,
+
+      resultCity: c.known ? c.name : 'Your city',
+      bigNumber: this.fmt(st.big),
+      salaryText: this.lakh(m.total * 12 / 0.93),
+      segments, rows,
+      medianPos: this.logPos(22000), youPos: this.logPos(m.total),
+      medianAmt: this.fmt(22000), youAmt: this.fmt(m.total), gapLine: 'Your number sits above ' + pc.toFixed(0) + '% of salaried earners in urban India. Half of them take home under ' + this.fmt(22000) + ' a month.',
+      insight: this.insightLine(),
+
+      corrOpen: st.corrOpen, corrVal: st.corrVal,
+      openCorrection: () => this.setState({ corrOpen: !st.corrOpen }),
+      onCorr: (e) => this.setState({ corrVal: e.target.value }),
+      sendCorr: () => this.setState({ corrSent: true, corrVal: '' }),
+      corrBtn: st.corrSent ? 'Thanks' : 'Send',
+      copyLink: () => {
+        this.writeHash();
+        try { navigator.clipboard.writeText(location.href); } catch (e) { /* no clipboard */ }
+        this.setState({ copied: true });
+        this.timers.push(setTimeout(() => this.setState({ copied: false }), 2000));
+      },
+      copyLabel: st.copied ? 'Link copied' : 'Copy my link'
+    };
+  }
+}
+</script>
+</body>
+</html>
