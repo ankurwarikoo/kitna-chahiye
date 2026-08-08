@@ -221,8 +221,8 @@ export const TOGGLE_DEFS: ToggleDef[] = [
 
 export function defaultAnswers(): Answers {
   return {
-    age: "26",
-    cityKey: "56", // Bengaluru — matches the 560001 default pincode
+    age: "",
+    cityKey: "56", // fallback city for pre-cityKey shared links (Bengaluru)
     roof: 2,
     commute: 2,
     foodBase: 1,

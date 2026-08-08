@@ -57,8 +57,9 @@ export function KitnaChahiye({ initialAnswers, initialCity, startAtResult }: Kit
   const [seen, setSeen] = useState(startAtResult ? 8 : 0);
   const [answers, setAnswers] = useState<Answers>(initialAnswers ?? defaultAnswers());
   // The raw pincode lives only in component state — it never leaves the device
-  // and is never written to the URL. A shared link resolves its city from the key.
-  const [pin, setPin] = useState<string>(initialCity && initialCity.known ? "" : "560001");
+  // and is never written to the URL. A shared link resolves its city from the
+  // key; a fresh quiz starts empty so nothing is pre-filled.
+  const [pin, setPin] = useState<string>("");
   const [calcStep, setCalcStep] = useState(0);
   const revealBigRef = useRef(false);
 
@@ -246,7 +247,7 @@ export function KitnaChahiye({ initialAnswers, initialCity, startAtResult }: Kit
               pin={pin}
               city={city}
               onAge={(v) => setAnswers((a) => ({ ...a, age: digitsOnly(v).slice(0, 2) }))}
-              onBlurAge={() => setAnswers((a) => ({ ...a, age: String(ageNum(a.age)) }))}
+              onBlurAge={() => setAnswers((a) => ({ ...a, age: digitsOnly(a.age) ? String(ageNum(a.age)) : "" }))}
               onPin={(v) => setPin(digitsOnly(v).slice(0, 6))}
               onPickCity={(code) => setPin(code)}
             />
