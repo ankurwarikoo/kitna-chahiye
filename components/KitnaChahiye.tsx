@@ -582,7 +582,7 @@ function DebtScreen({
   onClear: () => void;
 }) {
   const anyOn = DEBT_DEFS.some((d) => answers.d[d.k].on);
-  const rows = [{ k: "none" as const, label: "No loans :))", sub: "Loan free! :))", v: 0, years: false }, ...DEBT_DEFS];
+  const rows = [{ k: "none" as const, label: "No loans :))", sub: "Loan free! :))", v: 0 }, ...DEBT_DEFS];
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
@@ -648,32 +648,6 @@ function DebtScreen({
                     />
                   </div>
                 </div>
-                {(d as { years?: boolean }).years && (
-                  <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                    <span style={{ fontSize: 13, color: "#6F6557" }}>Years left on it?</span>
-                    <input
-                      value={answers.d[d.k as DebtKey].yrs}
-                      onChange={(e) => onToggle(d.k as DebtKey, { yrs: digitsOnly(e.target.value).slice(0, 2) })}
-                      inputMode="numeric"
-                      maxLength={2}
-                      placeholder="7"
-                      style={{
-                        width: 66,
-                        minHeight: 44,
-                        padding: "0 12px",
-                        borderRadius: 12,
-                        border: "1px solid #EADFCC",
-                        background: PAPER,
-                        ...mono,
-                        fontSize: 16,
-                        color: INK,
-                        outline: "none",
-                        textAlign: "center",
-                      }}
-                    />
-                    <span style={{ ...mono, fontSize: 11, color: "#B9AE9B" }}>optional</span>
-                  </div>
-                )}
               </div>
             )}
           </div>

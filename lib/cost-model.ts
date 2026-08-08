@@ -271,14 +271,13 @@ export interface DebtDef {
   sub: string;
   /** preset EMI, used only when the user leaves the field blank; not city-adjusted */
   v: number;
-  years?: boolean;
 }
 
 export const DEBT_DEFS: DebtDef[] = [
-  { k: "edu", label: "An education loan", sub: "The most common one at your age", v: 12000, years: true },
-  { k: "vehicle", label: "A Car/Bike Loan", sub: "Bike or car", v: 9000, years: true },
+  { k: "edu", label: "An education loan", sub: "The most common one at your age", v: 12000 },
+  { k: "vehicle", label: "A Car/Bike Loan", sub: "Bike or car", v: 9000 },
   { k: "card", label: "A credit card monthly spend", sub: "Minimum due, every month", v: 6000 },
-  { k: "other", label: "Personal (or any other) loan", sub: "Personal, home, family, anything else", v: 15000, years: true },
+  { k: "other", label: "Personal (or any other) loan", sub: "Personal, home, family, anything else", v: 15000 },
 ];
 
 export interface ToggleDef {
@@ -650,13 +649,6 @@ export function insightLine(a: Answers, m: Model): string {
   if (m.debt > 0) {
     const debtPct = m.debt / (m.total - m.debt);
     cands.push({ s: debtPct / 0.15, text: "What you owe is " + Math.round(debtPct * 100) + "% of everything else you spend." });
-    const withYrs = debtOn(a).filter((d) => parseInt(digitsOnly(debtRow(a, d.k).yrs), 10) > 0);
-    if (withYrs.length) {
-      const first = withYrs[0];
-      const y = parseInt(digitsOnly(debtRow(a, first.k).yrs), 10);
-      const name = first.label.replace(/^An? /, "").replace(/^A /, "");
-      cands.push({ s: 1.4, text: name + " ends in " + (2026 + y) + ". That is " + fmt(debtOf(a, first.k) * 12 * y) + " between now and then." });
-    }
   }
   cands.sort((x, y) => y.s - x.s);
   return cands[0].text;
@@ -701,16 +693,7 @@ export function breakdownRows(a: Answers, m: Model): BreakdownRow[] {
     on.length === 0
       ? ""
       : on
-          .map((d) => {
-            const y = parseInt(digitsOnly(debtRow(a, d.k).yrs), 10);
-            return (
-              d.label.replace(/^An /, "an ").replace(/^A /, "a ") +
-              " at " +
-              fmt(debtOf(a, d.k)) +
-              " a month" +
-              (y > 0 ? ", ending in " + (2026 + y) : "")
-            );
-          })
+          .map((d) => d.label.replace(/^An /, "an ").replace(/^A /, "a ") + " at " + fmt(debtOf(a, d.k)) + " a month")
           .join(", and ") + ". Repayments only, not the balances.";
 
   // Null-safe: an unanswered choice (index -1) has no option; its row is priced
