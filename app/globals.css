@@ -68,6 +68,16 @@ input {
   font-family: inherit;
 }
 
+/* Screen-one hint placeholders: the field's typed style is 24px mono, so the
+   longer placeholder copy is rendered smaller and greyed to fit and read well. */
+.kc-who-input::placeholder {
+  font-family: var(--font-body), system-ui, sans-serif;
+  font-size: 15px;
+  letter-spacing: normal;
+  color: var(--ink-300);
+  opacity: 1;
+}
+
 /* Motion happens in exactly two places. This is the shared entrance for
    everything else: a fade with a small lift. */
 @keyframes kc-in {

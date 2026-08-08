@@ -428,12 +428,13 @@ function WhoScreen({
       <div>
         <div style={fieldLabel}>Your age</div>
         <FocusInput
+          className="kc-who-input"
           value={age}
           onChange={(e) => onAge(e.target.value)}
           onBlur={onBlurAge}
           inputMode="numeric"
           maxLength={2}
-          placeholder="26"
+          placeholder="Enter age in years"
           style={numInput}
         />
         <div style={{ marginTop: 12, fontSize: 14, color: "#6F6557", lineHeight: 1.5 }}>
@@ -443,11 +444,12 @@ function WhoScreen({
       <div>
         <div style={fieldLabel}>Your pincode</div>
         <FocusInput
+          className="kc-who-input"
           value={pin}
           onChange={(e) => onPin(e.target.value)}
           inputMode="numeric"
           maxLength={6}
-          placeholder="560001"
+          placeholder="Enter city/area pincode where you stay"
           style={numInput}
         />
         <div style={{ marginTop: 12, fontSize: 14, color: "#6F6557", lineHeight: 1.5 }}>{cityLine}</div>
