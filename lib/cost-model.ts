@@ -297,16 +297,21 @@ export const TOGGLE_DEFS: ToggleDef[] = [
 
 // --- Defaults -------------------------------------------------------------
 
+/** A single-choice answer that the user has not made yet. Prices to ₹0. */
+export const UNANSWERED = -1;
+
 export function defaultAnswers(): Answers {
   return {
     age: "",
     cityKey: "56", // fallback city for pre-cityKey shared links (Bengaluru)
-    roof: 2,
-    commute: 2,
-    foodBase: 1,
-    foodFun: 1,
-    bills: 1,
-    body: 1,
+    // Start every choice unanswered so the running meter only adds a category
+    // once the user actually picks it — nothing is assumed on their behalf.
+    roof: UNANSWERED,
+    commute: UNANSWERED,
+    foodBase: UNANSWERED,
+    foodFun: UNANSWERED,
+    bills: UNANSWERED,
+    body: UNANSWERED,
     d: {
       edu: { on: false, emi: "", yrs: "" },
       vehicle: { on: false, emi: "", yrs: "" },
@@ -707,7 +712,9 @@ export function breakdownRows(a: Answers, m: Model): BreakdownRow[] {
           })
           .join(", and ") + ". Repayments only, not the balances.";
 
-  const opt = (key: QuestionKey, i: number) => questionByKey(key).opts![i];
+  // Null-safe: an unanswered choice (index -1) has no option; its row is priced
+  // at 0 and dropped later, so an empty note here is harmless.
+  const opt = (key: QuestionKey, i: number) => questionByKey(key).opts?.[i] ?? { label: "", sub: "", n: "", v: 0 };
 
   // Disclose the household equivalence scaling on the categories it touches.
   const size = householdSize(a.household);

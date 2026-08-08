@@ -18,6 +18,7 @@ import {
   digitsOnly,
   fmt,
   grouped,
+  hasFamily,
   lifeMult,
   model as buildModel,
   parentsDerived,
@@ -201,6 +202,9 @@ export function KitnaChahiye({ initialAnswers, initialCity, startAtResult }: Kit
 
   const stepKey = steps[safeQi];
   const q = questionByKey(stepKey);
+  // On a single-choice screen, hold the user until they actually pick something,
+  // so nothing is added to the meter or the total on their behalf.
+  const needsPick = !!q.opts && (answers[q.key as keyof Answers] as unknown as number) < 0;
 
   return (
     <Shell>
@@ -312,20 +316,22 @@ export function KitnaChahiye({ initialAnswers, initialCity, startAtResult }: Kit
           </button>
           <button
             onClick={next}
+            disabled={needsPick}
             style={{
               appearance: "none",
               border: "none",
-              cursor: "pointer",
+              cursor: needsPick ? "not-allowed" : "pointer",
               flex: 1,
               minHeight: 56,
               borderRadius: 999,
-              background: INK,
-              color: "#FFFBF2",
+              background: needsPick ? "#E4D9C4" : INK,
+              color: needsPick ? "#B9AE9B" : "#FFFBF2",
               fontSize: 16,
               fontWeight: 700,
+              transition: "background .15s ease-out, color .15s ease-out",
             }}
           >
-            {safeQi >= lastIndex ? "Show me the number" : "Next"}
+            {needsPick ? "Pick one to continue" : safeQi >= lastIndex ? "Show me the number" : "Next"}
           </button>
         </footer>
       </div>
@@ -783,8 +789,54 @@ function HouseholdScreen({ household, onChange }: { household: Household; onChan
     onChange({ kidsAges: next });
   };
 
+  const onlyMe = !hasFamily(household);
+
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+      {/* Only me — on by default; turns off the moment anything else is chosen */}
+      <button
+        onClick={() => onChange({ partner: false, kidsAges: [], parents: 0, kidsCost: "", parentsCost: "" })}
+        style={{
+          appearance: "none",
+          cursor: "pointer",
+          textAlign: "left",
+          width: "100%",
+          padding: 20,
+          borderRadius: 20,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          gap: 16,
+          transition: "all .2s ease-out",
+          border: `2px solid ${onlyMe ? INK : LINE}`,
+          background: onlyMe ? PAPER : "transparent",
+        }}
+      >
+        <span style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+          <span style={{ fontSize: 16, fontWeight: 700, letterSpacing: "-0.01em", color: INK }}>Only me</span>
+          <span style={{ fontSize: 13, lineHeight: 1.5, color: "#6F6557" }}>Just your own costs. Pick anything below to add family.</span>
+        </span>
+        <span
+          aria-hidden
+          style={{
+            flexShrink: 0,
+            width: 24,
+            height: 24,
+            borderRadius: 999,
+            border: `2px solid ${onlyMe ? INK : "#DFD3BC"}`,
+            background: onlyMe ? INK : "transparent",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            color: "#FFFBF2",
+            fontSize: 13,
+            fontWeight: 800,
+          }}
+        >
+          {onlyMe ? "\u2713" : ""}
+        </span>
+      </button>
+
       {/* Partner */}
       <HouseholdCard on={household.partner}>
         <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 16 }}>
