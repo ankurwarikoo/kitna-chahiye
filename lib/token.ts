@@ -66,6 +66,12 @@ export function encodeAnswers(a: Answers): string {
     a.t.out ? 1 : 0,
     a.t.trip ? 1 : 0,
     a.t.save ? 1 : 0,
+    // Household (appended so pre-family links still decode to "just me").
+    a.household.partner ? 1 : 0,
+    a.household.parents,
+    JSON.stringify(a.household.kidsAges),
+    digits(a.household.kidsCost),
+    digits(a.household.parentsCost),
   ];
   return b64urlEncode(JSON.stringify(packed));
 }
@@ -111,8 +117,28 @@ export function decodeAnswers(token: string): Answers {
         trip: p[22] !== undefined ? p[22] === 1 || p[22] === "1" : def.t.trip,
         save: p[23] !== undefined ? p[23] === 1 || p[23] === "1" : def.t.save,
       },
+      household: {
+        partner: p[24] !== undefined ? p[24] === 1 || p[24] === "1" : def.household.partner,
+        parents: num(p[25], def.household.parents),
+        kidsAges: readKidsAges(p[26], def.household.kidsAges),
+        kidsCost: p[27] !== undefined ? String(p[27]) : def.household.kidsCost,
+        parentsCost: p[28] !== undefined ? String(p[28]) : def.household.parentsCost,
+      },
     };
   } catch {
     return def;
   }
+}
+
+function readKidsAges(v: unknown, fallback: number[]): number[] {
+  if (Array.isArray(v)) return v.map((x) => Number(x)).filter((n) => !isNaN(n) && n >= 0 && n <= 30);
+  if (typeof v === "string" && v.trim().startsWith("[")) {
+    try {
+      const arr = JSON.parse(v);
+      if (Array.isArray(arr)) return arr.map((x) => Number(x)).filter((n) => !isNaN(n) && n >= 0 && n <= 30);
+    } catch {
+      /* fall through */
+    }
+  }
+  return fallback;
 }

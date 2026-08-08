@@ -6,19 +6,25 @@ import {
   City,
   DEBT_DEFS,
   DebtKey,
-  QUESTIONS,
+  Household,
+  QuestionKey,
   TOGGLE_DEFS,
   ToggleKey,
   ageNum,
+  childrenDerived,
   cityFromKey,
   cityFromPin,
   defaultAnswers,
   digitsOnly,
   fmt,
   grouped,
+  lifeMult,
   model as buildModel,
+  parentsDerived,
   partialTotal,
   priced,
+  questionByKey,
+  stepKeys,
 } from "@/lib/cost-model";
 import { encodeAnswers } from "@/lib/token";
 import { useAnimatedValue } from "./useAnimatedValue";
@@ -54,7 +60,7 @@ export interface KitnaChahiyeProps {
 export function KitnaChahiye({ initialAnswers, initialCity, startAtResult }: KitnaChahiyeProps) {
   const [step, setStep] = useState<Step>(startAtResult ? "result" : "landing");
   const [qi, setQi] = useState(0);
-  const [seen, setSeen] = useState(startAtResult ? 8 : 0);
+  const [seen, setSeen] = useState(startAtResult ? 99 : 0);
   const [answers, setAnswers] = useState<Answers>(initialAnswers ?? defaultAnswers());
   // The raw pincode lives only in component state — it never leaves the device
   // and is never written to the URL. A shared link resolves its city from the
@@ -76,8 +82,14 @@ export function KitnaChahiye({ initialAnswers, initialCity, startAtResult }: Kit
     return cityFromPin(pin);
   }, [pin, startAtResult, initialCity]);
 
+  // The step list is dynamic: Children and Parents screens only appear when the
+  // household has them.
+  const steps = useMemo(() => stepKeys(answers), [answers]);
+  const lastIndex = steps.length - 1;
+  const safeQi = Math.min(qi, lastIndex);
+
   const m = useMemo(() => buildModel(answers, city), [answers, city]);
-  const target = useMemo(() => partialTotal(m, seen), [m, seen]);
+  const target = useMemo(() => partialTotal(answers, m, seen), [answers, m, seen]);
   const meter = useAnimatedValue(target, 520, 0);
 
   // Keep the stored city key in sync with the resolved city so the token carries
@@ -106,8 +118,8 @@ export function KitnaChahiye({ initialAnswers, initialCity, startAtResult }: Kit
   const start = () => go(0);
 
   const back = () => {
-    if (qi === 0) setStep("landing");
-    else go(qi - 1);
+    if (safeQi === 0) setStep("landing");
+    else go(safeQi - 1);
   };
 
   const showResult = useCallback(() => {
@@ -125,7 +137,7 @@ export function KitnaChahiye({ initialAnswers, initialCity, startAtResult }: Kit
     timers.current.push(setTimeout(() => showResult(), REVEAL_MS));
   };
 
-  const next = () => (qi === 8 ? runCalc() : go(qi + 1));
+  const next = () => (safeQi >= lastIndex ? runCalc() : go(safeQi + 1));
 
   const restart = () => {
     clearTimers();
@@ -159,6 +171,9 @@ export function KitnaChahiye({ initialAnswers, initialCity, startAtResult }: Kit
       },
     }));
 
+  const setHousehold = (fields: Partial<Household>) =>
+    setAnswers((a) => ({ ...a, household: { ...a.household, ...fields } }));
+
   // --- Render -------------------------------------------------------------
   if (step === "result") {
     return (
@@ -184,7 +199,8 @@ export function KitnaChahiye({ initialAnswers, initialCity, startAtResult }: Kit
     );
   }
 
-  const q = QUESTIONS[qi];
+  const stepKey = steps[safeQi];
+  const q = questionByKey(stepKey);
 
   return (
     <Shell>
@@ -205,15 +221,15 @@ export function KitnaChahiye({ initialAnswers, initialCity, startAtResult }: Kit
           }}
         >
           <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
-            {QUESTIONS.map((_, i) => (
+            {steps.map((k, i) => (
               <div
-                key={i}
+                key={k}
                 style={{
                   height: 6,
                   borderRadius: 999,
                   transition: "all .25s ease-out",
-                  width: i === qi ? 20 : 6,
-                  background: i === qi ? INK : i < seen ? "#B9AE9B" : LINE,
+                  width: i === safeQi ? 20 : 6,
+                  background: i === safeQi ? INK : i < seen ? "#B9AE9B" : LINE,
                 }}
               />
             ))}
@@ -234,7 +250,7 @@ export function KitnaChahiye({ initialAnswers, initialCity, startAtResult }: Kit
         {/* Body */}
         <div style={{ flex: 1, padding: "28px 20px 24px" }}>
           <div style={{ ...mono, fontSize: 10, letterSpacing: "0.16em", textTransform: "uppercase", color: "#B9AE9B", marginBottom: 10 }}>
-            {q.eyebrow}
+            {`Step ${safeQi + 1} of ${steps.length}`}
           </div>
           <h2 style={{ ...disp, fontWeight: 800, letterSpacing: "-0.03em", lineHeight: 1.05, fontSize: 30, color: INK, margin: "0 0 6px" }}>
             {q.title}
@@ -253,7 +269,11 @@ export function KitnaChahiye({ initialAnswers, initialCity, startAtResult }: Kit
             />
           )}
 
+          {q.household && <HouseholdScreen household={answers.household} onChange={setHousehold} />}
+
           {q.opts && <PlainScreen qKey={q.key} answers={answers} city={city} onPick={(i) => setOption(q.key, i)} />}
+
+          {q.familyCost && <FamilyCostScreen kind={q.familyCost} answers={answers} city={city} onChange={setHousehold} />}
 
           {q.debt && <DebtScreen answers={answers} onToggle={setDebt} onClear={clearDebt} />}
 
@@ -305,7 +325,7 @@ export function KitnaChahiye({ initialAnswers, initialCity, startAtResult }: Kit
               fontWeight: 700,
             }}
           >
-            {qi === 8 ? "Show me the number" : "Next"}
+            {safeQi >= lastIndex ? "Show me the number" : "Next"}
           </button>
         </footer>
       </div>
@@ -490,12 +510,12 @@ function PlainScreen({
   city,
   onPick,
 }: {
-  qKey: (typeof QUESTIONS)[number]["key"];
+  qKey: QuestionKey;
   answers: Answers;
   city: City;
   onPick: (i: number) => void;
 }) {
-  const q = QUESTIONS.find((x) => x.key === qKey)!;
+  const q = questionByKey(qKey);
   const selected = answers[qKey as keyof Answers] as unknown as number;
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
@@ -526,7 +546,7 @@ function PlainScreen({
               <span style={{ fontSize: 16, fontWeight: 700, letterSpacing: "-0.01em", color: INK }}>{o.label}</span>
               <span style={{ fontSize: 13, color: "#938876" }}>{o.sub}</span>
             </span>
-            <span style={{ ...mono, fontSize: 13, flexShrink: 0, color: on ? INK : "#B9AE9B" }}>{fmt(priced(qKey, i, city))}</span>
+            <span style={{ ...mono, fontSize: 13, flexShrink: 0, color: on ? INK : "#B9AE9B" }}>{fmt(priced(qKey, i, city, answers.household))}</span>
           </button>
         );
       })}
@@ -653,6 +673,7 @@ function DebtScreen({
 function TogglesScreen({ answers, city, onFlip }: { answers: Answers; city: City; onFlip: (k: ToggleKey) => void }) {
   const m = buildModel(answers, city);
   const costIdx = 0.78 + 0.22 * city.idx;
+  const life = lifeMult(answers.household);
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
       {TOGGLE_DEFS.map((t) => {
@@ -662,7 +683,7 @@ function TogglesScreen({ answers, city, onFlip }: { answers: Answers; city: City
             ? on
               ? "+ " + fmt(m.save)
               : "+ a quarter of the rest"
-            : "+ " + fmt(Math.round(((t.v as number) * costIdx) / 100) * 100) + " a month";
+            : "+ " + fmt(Math.round(((t.v as number) * costIdx * life) / 100) * 100) + " a month";
         return (
           <button
             key={t.key}
@@ -694,6 +715,198 @@ function TogglesScreen({ answers, city, onFlip }: { answers: Answers; city: City
           </button>
         );
       })}
+    </div>
+  );
+}
+
+// --- Household screen ------------------------------------------------------
+
+const MAX_KIDS = 4;
+
+function Stepper({ value, min, max, onChange }: { value: number; min: number; max: number; onChange: (v: number) => void }) {
+  const round = (label: string, disabled: boolean, onClick: () => void) => (
+    <button
+      onClick={onClick}
+      disabled={disabled}
+      style={{
+        appearance: "none",
+        cursor: disabled ? "default" : "pointer",
+        width: 44,
+        height: 44,
+        borderRadius: 999,
+        border: `2px solid ${disabled ? "#EADFCC" : "#17130D"}`,
+        background: "transparent",
+        color: disabled ? "#DFD3BC" : "#17130D",
+        fontSize: 22,
+        fontWeight: 700,
+        lineHeight: 1,
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+      }}
+    >
+      {label}
+    </button>
+  );
+  return (
+    <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
+      {round("\u2212", value <= min, () => onChange(value - 1))}
+      <span className="tnum" style={{ ...mono, fontSize: 22, minWidth: 22, textAlign: "center", color: INK }}>
+        {value}
+      </span>
+      {round("+", value >= max, () => onChange(value + 1))}
+    </div>
+  );
+}
+
+function HouseholdCard({ on, children }: { on: boolean; children: React.ReactNode }) {
+  return (
+    <div style={{ padding: 20, borderRadius: 20, border: `2px solid ${on ? INK : LINE}`, background: on ? PAPER : "transparent", transition: "all .2s ease-out" }}>
+      {children}
+    </div>
+  );
+}
+
+function HouseholdScreen({ household, onChange }: { household: Household; onChange: (f: Partial<Household>) => void }) {
+  const kids = household.kidsAges;
+
+  const setKidCount = (n: number) => {
+    const next = kids.slice(0, n);
+    while (next.length < n) next.push(5); // sensible default age; editable below
+    onChange({ kidsAges: next });
+  };
+  const setKidAge = (i: number, ageStr: string) => {
+    const digits = ageStr.replace(/\D/g, "").slice(0, 2);
+    const age = digits === "" ? 0 : Math.min(25, parseInt(digits, 10));
+    const next = kids.slice();
+    next[i] = age;
+    onChange({ kidsAges: next });
+  };
+
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+      {/* Partner */}
+      <HouseholdCard on={household.partner}>
+        <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 16 }}>
+          <span style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+            <span style={{ fontSize: 16, fontWeight: 700, letterSpacing: "-0.01em", color: INK }}>A partner or spouse</span>
+            <span style={{ fontSize: 13, lineHeight: 1.5, color: "#6F6557" }}>Shares your home and its costs.</span>
+          </span>
+          <button
+            onClick={() => onChange({ partner: !household.partner })}
+            style={{
+              appearance: "none",
+              cursor: "pointer",
+              flexShrink: 0,
+              width: 52,
+              height: 32,
+              borderRadius: 999,
+              padding: 3,
+              border: "none",
+              transition: "background .2s ease-out",
+              background: household.partner ? INK : "#DFD3BC",
+            }}
+          >
+            <span style={{ display: "block", width: 26, height: 26, borderRadius: 999, background: "#FFFFFF", transition: "transform .2s ease-out", transform: household.partner ? "translateX(20px)" : "translateX(0)" }} />
+          </button>
+        </div>
+      </HouseholdCard>
+
+      {/* Children */}
+      <HouseholdCard on={kids.length > 0}>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16 }}>
+          <span style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+            <span style={{ fontSize: 16, fontWeight: 700, letterSpacing: "-0.01em", color: INK }}>Children</span>
+            <span style={{ fontSize: 13, lineHeight: 1.5, color: "#6F6557" }}>How many depend on you.</span>
+          </span>
+          <Stepper value={kids.length} min={0} max={MAX_KIDS} onChange={setKidCount} />
+        </div>
+        {kids.length > 0 && (
+          <div className="kc-in" style={{ marginTop: 16, display: "flex", flexDirection: "column", gap: 10 }}>
+            <div style={{ fontSize: 13, fontWeight: 700, color: "#463E31" }}>Their ages</div>
+            <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
+              {kids.map((age, i) => (
+                <input
+                  key={i}
+                  value={String(age)}
+                  onChange={(e) => setKidAge(i, e.target.value)}
+                  inputMode="numeric"
+                  maxLength={2}
+                  aria-label={`Age of child ${i + 1}`}
+                  style={{
+                    width: 60,
+                    minHeight: 48,
+                    padding: "0 12px",
+                    borderRadius: 12,
+                    border: "1px solid #EADFCC",
+                    background: PAPER,
+                    ...mono,
+                    fontSize: 18,
+                    color: INK,
+                    outline: "none",
+                    textAlign: "center",
+                  }}
+                />
+              ))}
+            </div>
+          </div>
+        )}
+      </HouseholdCard>
+
+      {/* Dependent parents */}
+      <HouseholdCard on={household.parents > 0}>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16 }}>
+          <span style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+            <span style={{ fontSize: 16, fontWeight: 700, letterSpacing: "-0.01em", color: INK }}>Dependent parents</span>
+            <span style={{ fontSize: 13, lineHeight: 1.5, color: "#6F6557" }}>Parents you support each month.</span>
+          </span>
+          <Stepper value={household.parents} min={0} max={2} onChange={(n) => onChange({ parents: n })} />
+        </div>
+      </HouseholdCard>
+    </div>
+  );
+}
+
+// --- Children / parents cost screens ---------------------------------------
+
+function FamilyCostScreen({
+  kind,
+  answers,
+  city,
+  onChange,
+}: {
+  kind: "children" | "parents";
+  answers: Answers;
+  city: City;
+  onChange: (f: Partial<Household>) => void;
+}) {
+  const h = answers.household;
+  const derived = kind === "children" ? childrenDerived(answers, city) : parentsDerived(answers, city);
+  const value = kind === "children" ? h.kidsCost : h.parentsCost;
+  const set = (v: string) => onChange(kind === "children" ? { kidsCost: v } : { parentsCost: v });
+
+  const helper =
+    kind === "children"
+      ? `Based on ${h.kidsAges.length} ${h.kidsAges.length === 1 ? "child" : "children"} (age${h.kidsAges.length === 1 ? " " : "s "}${h.kidsAges.join(", ")}) by school stage, city-adjusted. Edit if yours differ.`
+      : `Everyday support plus a senior health cover for ${h.parents} ${h.parents === 1 ? "parent" : "parents"}, city-adjusted. Edit if yours differ.`;
+
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 10, minHeight: 60, padding: "0 18px", borderRadius: 16, border: "2px solid #EADFCC", background: PAPER }}>
+        <span style={{ ...mono, fontSize: 24, color: "#938876" }}>{"\u20B9"}</span>
+        <input
+          value={grouped(value)}
+          onChange={(e) => set(digitsOnly(e.target.value).slice(0, 7))}
+          inputMode="numeric"
+          placeholder={derived.toLocaleString("en-IN")}
+          style={{ flex: 1, minWidth: 0, border: "none", outline: "none", background: "transparent", ...mono, fontSize: 24, letterSpacing: "0.06em", color: INK }}
+        />
+        <span style={{ ...mono, fontSize: 12, color: "#B9AE9B" }}>a month</span>
+      </div>
+      <div style={{ fontSize: 14, color: "#6F6557", lineHeight: 1.5 }}>{helper}</div>
+      <div style={{ ...mono, fontSize: 11, color: "#B9AE9B" }}>
+        {kind === "children" ? "School + childcare basket · assumption" : "Elder support + senior premium · assumption"}
+      </div>
     </div>
   );
 }

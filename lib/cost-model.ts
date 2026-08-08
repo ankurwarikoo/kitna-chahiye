@@ -20,6 +20,29 @@ export interface DebtEntry {
   yrs: string;
 }
 
+/**
+ * Who this earner is covering. Defaults to "just me" (no partner, no kids, no
+ * dependent parents), which reproduces the individual model exactly — so every
+ * pre-existing shared link still opens.
+ *
+ * Family costs are NOT a flat multiple of household size. Different categories
+ * scale very differently, so we apply a category-specific equivalence weight
+ * (an OECD-modified-scale style assumption: first adult 1.0, extra adult +0.5,
+ * child +0.3) rather than ×N. This is a stated assumption, surfaced as such.
+ */
+export interface Household {
+  /** a partner/spouse who shares the home and its costs */
+  partner: boolean;
+  /** ages of children, e.g. [3, 8]; length is the number of kids */
+  kidsAges: number[];
+  /** number of dependent parents (0–2) */
+  parents: number;
+  /** optional override of the monthly kids cost; "" falls back to the derived figure */
+  kidsCost: string;
+  /** optional override of the monthly parents cost; "" falls back to the derived figure */
+  parentsCost: string;
+}
+
 export interface Answers {
   /** digits only, clamped 18–70 on blur */
   age: string;
@@ -33,6 +56,7 @@ export interface Answers {
   body: number;
   d: Record<DebtKey, DebtEntry>;
   t: Record<ToggleKey, boolean>;
+  household: Household;
 }
 
 export interface City {
@@ -101,17 +125,41 @@ export interface Option {
   n: string;
 }
 
+export type QuestionKey =
+  | "who"
+  | "household"
+  | "roof"
+  | "commute"
+  | "foodBase"
+  | "foodFun"
+  | "bills"
+  | "body"
+  | "children"
+  | "parents"
+  | "debt"
+  | "comfort";
+
 export interface Question {
-  key: "who" | "roof" | "commute" | "foodBase" | "foodFun" | "bills" | "body" | "debt" | "comfort";
+  key: QuestionKey;
   eyebrow: string;
   title: string;
   sub: string;
   opts?: Option[];
   debt?: boolean;
+  household?: boolean;
+  /** an editable family-cost screen (children or parents) */
+  familyCost?: "children" | "parents";
 }
 
 export const QUESTIONS: Question[] = [
   { key: "who", eyebrow: "One of nine", title: "Where are you living?", sub: "Rent is the whole game, and it is local." },
+  {
+    key: "household",
+    eyebrow: "Your household",
+    title: "Who are you covering?",
+    sub: "The numbers change a lot with a family. Just you by default.",
+    household: true,
+  },
   {
     key: "roof",
     eyebrow: "Two of nine",
@@ -183,9 +231,39 @@ export const QUESTIONS: Question[] = [
       { label: "Gym, a sport, therapy", sub: "You treat it as non-negotiable", v: 5600, n: "A gym, a sport and therapy, plus an individual health insurance premium." },
     ],
   },
+  {
+    key: "children",
+    eyebrow: "Your kids",
+    title: "What do the kids cost?",
+    sub: "School fees, care, activities, health. Both counted.",
+    familyCost: "children",
+  },
+  {
+    key: "parents",
+    eyebrow: "Your parents",
+    title: "Supporting your parents?",
+    sub: "Everyday support and a senior health cover.",
+    familyCost: "parents",
+  },
   { key: "debt", eyebrow: "Eight of nine", title: "What do you owe every month?", sub: "EMIs and anything you are carrying on a card. Pick all that apply.", debt: true },
   { key: "comfort", eyebrow: "Nine of nine", title: "What does comfortable mean to you?", sub: "This is where you set the standard, not us." },
 ];
+
+// A step-key → model-component map used by the running meter, plus the dynamic
+// screen order. Children/parents only appear when the household has them.
+export function stepKeys(a: Answers): QuestionKey[] {
+  const hasKids = a.household.kidsAges.length > 0;
+  const hasParents = a.household.parents > 0;
+  const keys: QuestionKey[] = ["who", "household", "roof", "commute", "foodBase", "foodFun", "bills", "body"];
+  if (hasKids) keys.push("children");
+  if (hasParents) keys.push("parents");
+  keys.push("debt", "comfort");
+  return keys;
+}
+
+export function questionByKey(key: QuestionKey): Question {
+  return QUESTIONS.find((q) => q.key === key)!;
+}
 
 export interface DebtDef {
   k: DebtKey;
@@ -236,7 +314,102 @@ export function defaultAnswers(): Answers {
       other: { on: false, emi: "", yrs: "" },
     },
     t: { out: true, trip: true, save: true },
+    household: { partner: false, kidsAges: [], parents: 0, kidsCost: "", parentsCost: "" },
   };
+}
+
+// --- Household equivalence weights ---------------------------------------
+// Per-category multipliers relative to a single person (= 1.0). These are a
+// stated assumption, not measured — surfaced as such on the family lines.
+
+/** Total people in the household, for plain-English messaging. */
+export function householdSize(h: Household): number {
+  return 1 + (h.partner ? 1 : 0) + h.parents + h.kidsAges.length;
+}
+
+/** True once the household is anything other than "just me". */
+export function hasFamily(h: Household): boolean {
+  return h.partner || h.parents > 0 || h.kidsAges.length > 0;
+}
+
+function foodKidWeight(age: number): number {
+  return age < 6 ? 0.3 : age < 14 ? 0.6 : 0.8;
+}
+
+/** Rent steps by rooms needed, not by headcount. */
+function rentMult(h: Household): number {
+  const rooms = 1 + (h.kidsAges.length > 0 ? Math.ceil(h.kidsAges.length / 2) : 0) + (h.parents > 0 ? 1 : 0);
+  return 1 + 0.45 * (rooms - 1) + (h.partner ? 0.15 : 0);
+}
+
+function foodMult(h: Household): number {
+  return 1 + 0.6 * (h.partner ? 1 : 0) + 0.6 * h.parents + h.kidsAges.reduce((s, a) => s + foodKidWeight(a), 0);
+}
+
+function billsMult(h: Household): number {
+  return 1 + 0.2 * ((h.partner ? 1 : 0) + h.parents) + 0.15 * h.kidsAges.length;
+}
+
+// Parents' own health is a separate line, so this covers self + partner + kids.
+function healthMult(h: Household): number {
+  return 1 + 0.8 * (h.partner ? 1 : 0) + h.kidsAges.reduce((s, a) => s + (a < 5 ? 0.7 : 0.4), 0);
+}
+
+export function lifeMult(h: Household): number {
+  return 1 + 0.4 * (h.partner ? 1 : 0) + 0.2 * h.kidsAges.length + 0.3 * h.parents;
+}
+
+/** The family multiplier applied to a given quiz category. */
+export function familyMult(key: QuestionKey, h: Household): number {
+  switch (key) {
+    case "roof":
+      return rentMult(h);
+    case "foodBase":
+    case "foodFun":
+      return foodMult(h);
+    case "bills":
+      return billsMult(h);
+    case "body":
+      return healthMult(h);
+    default:
+      return 1;
+  }
+}
+
+// --- Children and parents costs ------------------------------------------
+// Base monthly figures at index 1.00 (Bengaluru), city-adjusted with costIdx.
+// Invented, plausible stand-ins — replace with a sourced schooling/care basket.
+
+function childBase(age: number): number {
+  if (age < 4) return 15000; // daycare / creche
+  if (age < 6) return 9000; // preschool
+  if (age < 18) return 12000; // school: fees, books, transport, tuition
+  return 20000; // college / higher education
+}
+
+/** Derived monthly kids cost, summed per child and city-adjusted. */
+export function childrenDerived(a: Answers, c: City): number {
+  const costIdx = 0.78 + 0.22 * c.idx;
+  return a.household.kidsAges.reduce((s, age) => s + Math.round((childBase(age) * costIdx) / 100) * 100, 0);
+}
+
+/** Derived monthly parents cost: everyday support (city-adjusted) + a flat senior health premium, per parent. */
+export function parentsDerived(a: Answers, c: City): number {
+  const costIdx = 0.78 + 0.22 * c.idx;
+  const perParent = Math.round((8000 * costIdx) / 100) * 100 + 6000;
+  return a.household.parents * perParent;
+}
+
+export function childrenCost(a: Answers, c: City): number {
+  if (a.household.kidsAges.length === 0) return 0;
+  const typed = parseInt(digitsOnly(a.household.kidsCost), 10);
+  return isNaN(typed) ? childrenDerived(a, c) : typed;
+}
+
+export function parentsCost(a: Answers, c: City): number {
+  if (a.household.parents === 0) return 0;
+  const typed = parseInt(digitsOnly(a.household.parentsCost), 10);
+  return isNaN(typed) ? parentsDerived(a, c) : typed;
 }
 
 // --- Formatting -----------------------------------------------------------
@@ -273,12 +446,16 @@ function idxFor(key: string, c: City): number {
   return key === "roof" ? c.idx : 0.78 + 0.22 * c.idx;
 }
 
-/** priced(base, index) = round(base × index / 100) × 100 — nearest ₹100. */
-export function priced(key: Question["key"], optIndex: number, c: City): number {
+/**
+ * priced(base, index, familyMult) = round(base × index × mult / 100) × 100.
+ * Rounded to the nearest ₹100. `h` scales the figure for household size.
+ */
+export function priced(key: Question["key"], optIndex: number, c: City, h?: Household): number {
   const q = QUESTIONS.find((x) => x.key === key);
   const o = q?.opts?.[optIndex];
   if (!o) return 0;
-  return Math.round((o.v * idxFor(key, c)) / 100) * 100;
+  const mult = h ? familyMult(key, h) : 1;
+  return Math.round((o.v * idxFor(key, c) * mult) / 100) * 100;
 }
 
 function debtRow(a: Answers, k: DebtKey): DebtEntry {
@@ -311,6 +488,8 @@ export interface Model {
   bills: number;
   body: number;
   debt: number;
+  children: number;
+  parents: number;
   core: number;
   misc: number;
   out: number;
@@ -324,19 +503,24 @@ export interface Model {
 
 export function model(a: Answers, city: City): Model {
   const c = city;
+  const h = a.household;
   const costIdx = 0.78 + 0.22 * c.idx;
-  const rent = priced("roof", a.roof, c);
-  const commute = priced("commute", a.commute, c);
-  const foodBase = priced("foodBase", a.foodBase, c);
-  const foodFun = priced("foodFun", a.foodFun, c);
-  const bills = priced("bills", a.bills, c);
-  const body = priced("body", a.body, c);
+  const life = lifeMult(h);
+  const rent = priced("roof", a.roof, c, h);
+  const commute = priced("commute", a.commute, c, h);
+  const foodBase = priced("foodBase", a.foodBase, c, h);
+  const foodFun = priced("foodFun", a.foodFun, c, h);
+  const bills = priced("bills", a.bills, c, h);
+  const body = priced("body", a.body, c, h);
   const debt = debtTotal(a);
+  const children = childrenCost(a, c);
+  const parents = parentsCost(a, c);
   const core = rent + commute + foodBase + foodFun + bills + body;
   const misc = Math.round((core * 0.08) / 100) * 100;
-  const out = a.t.out ? Math.round((4500 * costIdx) / 100) * 100 : 0;
-  const trip = a.t.trip ? Math.round((6250 * costIdx) / 100) * 100 : 0;
-  const preSave = core + misc + debt + out + trip;
+  // Comfort spend scales mildly with the household too.
+  const out = a.t.out ? Math.round((4500 * costIdx * life) / 100) * 100 : 0;
+  const trip = a.t.trip ? Math.round((6250 * costIdx * life) / 100) * 100 : 0;
+  const preSave = core + misc + debt + children + parents + out + trip;
   // 25% on top of the rest makes savings exactly 20% of the resulting total.
   const save = a.t.save ? Math.round((preSave * 0.25) / 100) * 100 : 0;
   const total = preSave + save;
@@ -351,6 +535,8 @@ export function model(a: Answers, city: City): Model {
     bills,
     body,
     debt,
+    children,
+    parents,
     core,
     misc,
     out,
@@ -363,20 +549,42 @@ export function model(a: Answers, city: City): Model {
   };
 }
 
+/** The model amount a given step reveals into the running meter. */
+export function stepAmount(key: QuestionKey, m: Model): number {
+  switch (key) {
+    case "roof":
+      return m.rent;
+    case "commute":
+      return m.commute;
+    case "foodBase":
+      return m.foodBase;
+    case "foodFun":
+      return m.foodFun;
+    case "bills":
+      return m.bills;
+    case "body":
+      return m.body;
+    case "children":
+      return m.children;
+    case "parents":
+      return m.parents;
+    case "debt":
+      return m.debt;
+    case "comfort":
+      return m.out + m.trip + m.save + m.misc;
+    default:
+      return 0;
+  }
+}
+
 /**
- * The running meter only includes what the user has actually seen, keyed on the
- * high-water mark of the question index.
+ * The running meter only includes what the user has actually seen. `seen` is the
+ * high-water index into the current dynamic step list.
  */
-export function partialTotal(m: Model, seen: number): number {
+export function partialTotal(a: Answers, m: Model, seen: number): number {
+  const keys = stepKeys(a);
   let t = 0;
-  if (seen >= 1) t += m.rent;
-  if (seen >= 2) t += m.commute;
-  if (seen >= 3) t += m.foodBase;
-  if (seen >= 4) t += m.foodFun;
-  if (seen >= 5) t += m.bills;
-  if (seen >= 6) t += m.body;
-  if (seen >= 7) t += m.debt;
-  if (seen >= 8) t += m.out + m.trip + m.save + m.misc;
+  for (let i = 1; i <= seen && i < keys.length; i++) t += stepAmount(keys[i], m);
   return t;
 }
 
@@ -424,6 +632,15 @@ export function insightLine(a: Answers, m: Model): string {
     { s: foodYr / 60000, text: "You will spend " + fmt(foodYr) + " on delivery and eating out next year." },
     { s: rentPct / 0.25, text: "Rent is " + Math.round(rentPct * 100) + "% of your take-home. The rule of thumb is 25%." },
   ];
+  if (m.children > 0) {
+    const kidsPct = m.children / m.total;
+    const yr = m.children * 12;
+    cands.push({ s: kidsPct / 0.2, text: "Raising your kids runs " + fmt(yr) + " a year — " + Math.round(kidsPct * 100) + "% of your take-home." });
+  }
+  if (m.parents > 0) {
+    const parentsYr = m.parents * 12;
+    cands.push({ s: (m.parents / m.total) / 0.12, text: "Supporting your parents is " + fmt(parentsYr) + " a year." });
+  }
   if (m.debt > 0) {
     const debtPct = m.debt / (m.total - m.debt);
     cands.push({ s: debtPct / 0.15, text: "What you owe is " + Math.round(debtPct * 100) + "% of everything else you spend." });
@@ -490,7 +707,30 @@ export function breakdownRows(a: Answers, m: Model): BreakdownRow[] {
           })
           .join(", and ") + ". Repayments only, not the balances.";
 
-  const q = (i: number) => QUESTIONS[i];
+  const opt = (key: QuestionKey, i: number) => questionByKey(key).opts![i];
+
+  // Disclose the household equivalence scaling on the categories it touches.
+  const size = householdSize(a.household);
+  const eqNote = hasFamily(a.household)
+    ? " Scaled for a household of " + size + " using a standard equivalence assumption (stated, not measured)."
+    : "";
+
+  const kidsN = a.household.kidsAges.length;
+  const kidsNote =
+    kidsN === 0
+      ? ""
+      : "You told us " +
+        kidsN +
+        (kidsN === 1 ? " child" : " children") +
+        " (age" +
+        (kidsN === 1 ? " " : "s ") +
+        a.household.kidsAges.join(", ") +
+        "). School fees, care, activities and their health, city-adjusted.";
+  const parentsN = a.household.parents;
+  const parentsNote =
+    parentsN === 0
+      ? ""
+      : "Everyday support for " + parentsN + (parentsN === 1 ? " parent" : " parents") + ", plus an individual senior health cover.";
 
   const defs: BreakdownRow[] = [
     {
@@ -498,7 +738,7 @@ export function breakdownRows(a: Answers, m: Model): BreakdownRow[] {
       label: "Rent",
       amt: m.rent,
       color: "#E14B33",
-      note: fillPlaceholders(q(1).opts![a.roof].n, c) + " A deposit is not part of a monthly number.",
+      note: fillPlaceholders(opt("roof", a.roof).n, c) + " A deposit is not part of a monthly number." + eqNote,
       src: "Rent index · Jun 2026",
       srcDetail:
         "Median listed rent for this configuration in " +
@@ -511,10 +751,30 @@ export function breakdownRows(a: Answers, m: Model): BreakdownRow[] {
       label: "Food",
       amt: m.food,
       color: "#463E31",
-      note: q(3).opts![a.foodBase].n + ", " + q(4).opts![a.foodFun].n,
+      note: opt("foodBase", a.foodBase).n + ", " + opt("foodFun", a.foodFun).n + "." + eqNote,
       src: "Grocery basket + delivery averages · May 2026",
       srcDetail:
         "Groceries from a 28-item urban basket priced monthly. Delivery averages from published order-value data for metro users. Prototype data set.",
+    },
+    {
+      k: "children",
+      label: "Children",
+      amt: m.children,
+      color: "#8A5A44",
+      note: kidsNote,
+      src: "School + childcare basket · assumption",
+      srcDetail:
+        "A stand-in schooling and care basket by age band (daycare, preschool, school, college), city-adjusted. Assumption, not measured — replace with sourced fee data. Where you typed a figure, that is used instead.",
+    },
+    {
+      k: "parents",
+      label: "Supporting parents",
+      amt: m.parents,
+      color: "#7E7663",
+      note: parentsNote,
+      src: "Elder support + senior premium · assumption",
+      srcDetail:
+        "Everyday support plus an individual senior health premium per parent, city-adjusted. Assumption, not measured. Where you typed a figure, that is used instead.",
     },
     {
       k: "debt",
@@ -531,7 +791,7 @@ export function breakdownRows(a: Answers, m: Model): BreakdownRow[] {
       label: "Getting around",
       amt: m.commute,
       color: "#938876",
-      note: fillPlaceholders(q(2).opts![a.commute].n, c),
+      note: fillPlaceholders(opt("commute", a.commute).n, c),
       src: "Fuel + fare rates · Jul 2026",
       srcDetail: "State fuel price, transport authority fare tables, and manufacturer service intervals. Prototype data set.",
     },
@@ -540,7 +800,7 @@ export function breakdownRows(a: Answers, m: Model): BreakdownRow[] {
       label: "Bills",
       amt: m.bills,
       color: "#B9AE9B",
-      note: fillPlaceholders(q(5).opts![a.bills].n, c),
+      note: fillPlaceholders(opt("bills", a.bills).n, c) + eqNote,
       src: c.state + " tariff · Apr 2026",
       srcDetail:
         "Domestic slab tariff as notified by the state regulator, applied to a usage profile matching your answer. Prototype data set.",
@@ -568,7 +828,7 @@ export function breakdownRows(a: Answers, m: Model): BreakdownRow[] {
       label: "Health",
       amt: m.body,
       color: "#EFE6D5",
-      note: q(6).opts![a.body].n,
+      note: opt("body", a.body).n + eqNote,
       src: a.body === 0 ? "Out-of-pocket medical spend · Jan 2026" : "Premium tables · Jan 2026",
       srcDetail:
         a.body === 0
