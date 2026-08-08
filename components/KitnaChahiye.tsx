@@ -42,13 +42,10 @@ const LINE = "#EADFCC";
 const PAPER = "#FFFFFF";
 const ACCENT = "#E14B33";
 
-// Spelled-out step eyebrow ("Two of nine"), matching the original design. The
-// total is now dynamic because the household flow can add screens.
-const NUM_WORDS = ["zero", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine", "ten", "eleven", "twelve", "thirteen", "fourteen"];
+// Step eyebrow ("Step 2 of 11"). The total is dynamic because the household
+// flow can add screens.
 function stepEyebrow(i: number, total: number): string {
-  const ord = NUM_WORDS[i + 1] ?? String(i + 1);
-  const tot = NUM_WORDS[total] ?? String(total);
-  return `${ord.charAt(0).toUpperCase()}${ord.slice(1)} of ${tot}`;
+  return `Step ${i + 1} of ${total}`;
 }
 
 type Step = "landing" | "quiz" | "calc" | "result";
@@ -533,10 +530,13 @@ function PlainScreen({
 }) {
   const q = questionByKey(qKey);
   const selected = answers[qKey as keyof Answers] as unknown as number;
+  // On the kitchen screen, a household cooks together: "I" becomes "We".
+  const familyVoice = qKey === "foodBase" && hasFamily(answers.household);
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
       {q.opts!.map((o, i) => {
         const on = selected === i;
+        const label = familyVoice ? o.label.replace(/^I /, "We ") : o.label;
         return (
           <button
             key={i}
@@ -559,7 +559,7 @@ function PlainScreen({
             }}
           >
             <span style={{ display: "flex", flexDirection: "column", gap: 3 }}>
-              <span style={{ fontSize: 16, fontWeight: 700, letterSpacing: "-0.01em", color: INK }}>{o.label}</span>
+              <span style={{ fontSize: 16, fontWeight: 700, letterSpacing: "-0.01em", color: INK }}>{label}</span>
               <span style={{ fontSize: 13, color: "#938876" }}>{o.sub}</span>
             </span>
             <span style={{ ...mono, fontSize: 13, flexShrink: 0, color: on ? INK : "#B9AE9B" }}>{fmt(priced(qKey, i, city, answers.household))}</span>
@@ -582,7 +582,7 @@ function DebtScreen({
   onClear: () => void;
 }) {
   const anyOn = DEBT_DEFS.some((d) => answers.d[d.k].on);
-  const rows = [{ k: "none" as const, label: "Nothing", sub: "Loan free! :))", v: 0, years: false }, ...DEBT_DEFS];
+  const rows = [{ k: "none" as const, label: "No loans :))", sub: "Loan free! :))", v: 0, years: false }, ...DEBT_DEFS];
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
@@ -612,7 +612,6 @@ function DebtScreen({
             >
               <span style={{ display: "flex", flexDirection: "column", gap: 3 }}>
                 <span style={{ fontSize: 16, fontWeight: 700, letterSpacing: "-0.01em", color: INK }}>{d.label}</span>
-                <span style={{ fontSize: 13, color: "#938876" }}>{d.sub}</span>
               </span>
               <span
                 style={{
